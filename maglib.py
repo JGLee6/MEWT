@@ -374,9 +374,9 @@ def dmoments(l, magArray):
             if abs(m) <= n-1:
                 qlm0 = e0*np.sqrt((n-m)*(n+m)*2)*np.conj(sp.sph_harm(m, n-1, phi, theta))
             if abs(m-1) <= n-1:
-                qlmm1 = em1*np.sqrt((n+m)*(n+m-1))*np.conj(sp.sph_harm(m-1, n-1, phi, theta))
+                qlmm1 = ep1*np.sqrt((n+m)*(n+m-1))*np.conj(sp.sph_harm(m-1, n-1, phi, theta))
             if abs(m+1) <= n-1:
-                qlmp1 = ep1*np.sqrt((n-m)*(n-m-1))*np.conj(sp.sph_harm(m+1, n-1, phi, theta))
+                qlmp1 = em1*np.sqrt((n-m)*(n-m-1))*np.conj(sp.sph_harm(m+1, n-1, phi, theta))
             qlms[n, l+m] = np.sum(magArray[:, 4]*rlfac*(qlm0 + qlmm1 + qlmp1))
 
     # Moments always satisfy q(l, -m) = (-1)^m q(l, m)*

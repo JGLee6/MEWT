@@ -24,6 +24,21 @@ def test_dmomz():
     pred = np.zeros([lmax+1, 2*lmax+1], dtype='complex')
     pred[1, lmax] = np.sqrt(3/(4*np.pi))
     assert (np.abs(dmom - pred) < 10*np.finfo(float).eps).all()
+    # Check if moved to [1, 0, 0]
+    mag1 = np.array([[1, 1, 0, 0, 1, 0, 0, 1]])
+    dmom = mglb.dmoments(lmax, mag1)
+    predx = trs.translate_qlm(pred, [1, 0, 0])
+    assert (np.abs(dmom - predx) < 50*np.finfo(float).eps).all()
+    # Check if moved to [0, 1, 0]
+    mag1 = np.array([[1, 0, 1, 0, 1, 0, 0, 1]])
+    dmom = mglb.dmoments(lmax, mag1)
+    predy = trs.translate_qlm(pred, [0, 1, 0])
+    assert (np.abs(dmom - predy) < 50*np.finfo(float).eps).all()
+    # Check if moved to [0, 0, 1]
+    mag1 = np.array([[1, 0, 0, 1, 1, 0, 0, 1]])
+    dmom = mglb.dmoments(lmax, mag1)
+    predz = trs.translate_qlm(pred, [0, 0, 1])
+    assert (np.abs(dmom - predz) < 150*np.finfo(float).eps).all()
 
 
 def test_dmomx():
@@ -38,6 +53,21 @@ def test_dmomx():
     pred[1, lmax+1] = np.sqrt(3/(4*np.pi))/np.sqrt(2)
     pred[1, lmax-1] = -np.sqrt(3/(4*np.pi))/np.sqrt(2)
     assert (np.abs(dmom - pred) < 10*np.finfo(float).eps).all()
+    # Check if moved to [1, 0, 0]
+    mag1 = np.array([[1, 1, 0, 0, 1, 1, 0, 0]])
+    dmom = mglb.dmoments(lmax, mag1)
+    predx = trs.translate_qlm(pred, [1, 0, 0])
+    assert (np.abs(dmom - predx) < 150*np.finfo(float).eps).all()
+    # Check if moved to [0, 1, 0]
+    mag1 = np.array([[1, 0, 1, 0, 1, 1, 0, 0]])
+    dmom = mglb.dmoments(lmax, mag1)
+    predy = trs.translate_qlm(pred, [0, 1, 0])
+    assert (np.abs(dmom - predy) < 150*np.finfo(float).eps).all()
+    # Check if moved to [0, 0, 1]
+    mag1 = np.array([[1, 0, 0, 1, 1, 1, 0, 0]])
+    dmom = mglb.dmoments(lmax, mag1)
+    predz = trs.translate_qlm(pred, [0, 0, 1])
+    assert (np.abs(dmom - predz) < 200*np.finfo(float).eps).all()
 
 
 def test_dmomy():
@@ -52,6 +82,45 @@ def test_dmomy():
     pred[1, lmax+1] = -np.sqrt(3/(4*np.pi))/np.sqrt(2)*1j
     pred[1, lmax-1] = -np.sqrt(3/(4*np.pi))/np.sqrt(2)*1j
     assert (np.abs(dmom - pred) < 10*np.finfo(float).eps).all()
+    # Check if moved to [1, 0, 0]
+    mag1 = np.array([[1, 1, 0, 0, 1, 0, 1, 0]])
+    dmom = mglb.dmoments(lmax, mag1)
+    predx = trs.translate_qlm(pred, [1, 0, 0])
+    assert (np.abs(dmom - predx) < 150*np.finfo(float).eps).all()
+    # Check if moved to [0, 1, 0]
+    mag1 = np.array([[1, 0, 1, 0, 1, 0, 1, 0]])
+    dmom = mglb.dmoments(lmax, mag1)
+    predy = trs.translate_qlm(pred, [0, 1, 0])
+    assert (np.abs(dmom - predy) < 150*np.finfo(float).eps).all()
+    # Check if moved to [0, 0, 1]
+    mag1 = np.array([[1, 0, 0, 1, 1, 0, 1, 0]])
+    dmom = mglb.dmoments(lmax, mag1)
+    predz = trs.translate_qlm(pred, [0, 0, 1])
+    assert (np.abs(dmom - predz) < 200*np.finfo(float).eps).all()
+
+
+def test_rot():
+    lmax = 10
+    # z-dip at origin -> mom -> [0, 0, 1]
+    magz = np.array([[1, 0, 0, 0, 1, 0, 0, 1]])
+    dmomz = mglb.dmoments(lmax, magz)
+    dmomzt = trs.translate_qlm(dmomz, [0, 0, 1])
+    # z-dip at [0, 0, 1] -> mom
+    magtz = np.array([[1, 0, 0, 1, 1, 0, 0, 1]])
+    dmomtz = mglb.dmoments(lmax, magtz)
+    assert (np.abs(dmomtz - dmomzt) < 2e2*np.finfo(float).eps).all()
+    # x-dip at origin -> mom -> [1, 0, 0]
+    magx = np.array([[1, 0, 0, 0, 1, 1, 0, 0]])
+    dmomx = mglb.dmoments(lmax, magx)
+    dmomxt = trs.translate_qlm(dmomx, [1, 0, 0])
+    # x-dip at [1, 0, 0] -> mom
+    magtx = np.array([[1, 1, 0, 0, 1, 1, 0, 0]])
+    dmomtx = mglb.dmoments(lmax, magtx)
+    assert (np.abs(dmomtx - dmomxt) < 2e2*np.finfo(float).eps).all()
+    # z-dip at [0, 0, 1] -> rotate to x-axis
+    dmomxrt = rot.rotate_qlm(dmomzt, 0, -np.pi/2, 0)
+    assert (np.abs(dmomxrt - dmomxt) < 2e2*np.finfo(float).eps).all()
+    # np.where(np.abs(dmomxrt - dmomxt) > 2e2*np.finfo(float).eps)
 
 
 def test_ft_a():
@@ -360,7 +429,8 @@ def test_recx():
     rqlm0 = mqlm.rect_prism_z(10, 1, 2, 3, 5, 0)
     rqlmx = mqlm.rect_prism_x(10, 1, 3, 2, 5, 0)
     rqlmx2 = mqlm.rect_prism_x2(10, 1, 3, 2, 5, 0)
-    rqlmx3 = rot.rotate_qlm(rqlm0, 0, -np.pi/2, 0)
+    # rotate z-oriented to x-oriented
+    rqlmx3 = rot.rotate_qlm(rqlm0, 0, np.pi/2, 0)
     tri0 = mqlm.tri_prism_x(10, 1, 3, 2/2, -2.5, 2.5)
     tri1 = mqlm.tri_prism_x(10, -1, 3, 2/2, -2.5, 2.5)
     tri1 = rot.rotate_qlm(tri1, 0, 0, np.pi)
@@ -373,6 +443,28 @@ def test_recx():
     rqlmx5 = mglb.dmoments(10, rect5)
     rect6 = mshp.rectangle(1, 2, 5, 3, 1, 1, 0, 0, 20, 20, 20)
     rqlmx6 = mglb.dmoments(10, rect6)
+    assert (np.abs(rqlmx2 - rqlmx3) < 3e5*np.finfo(float).eps).all()
+
+
+def test_recy():
+    rqlm0 = mqlm.rect_prism_z(10, 1, 2, 3, 5, 0)
+    rqlmy = mqlm.rect_prism_y(10, 1, 5, 3, 2, 0)
+    rqlmy2 = mqlm.rect_prism_y2(10, 1, 5, 3, 2, 0)
+    # rotate z-oriented to x-oriented
+    rqlmy3 = rot.rotate_qlm(rqlm0, np.pi/2, np.pi/2, -np.pi/2)
+    tri0 = mqlm.tri_prism_y(10, 1, 5, 3/2, -1, 1)
+    tri1 = mqlm.tri_prism_y(10, -1, 5, 3/2, -1, 1)
+    tri1 = rot.rotate_qlm(tri1, 0, 0, np.pi)
+    tri2 = mqlm.tri_prism_x(10, 1, 5, 2/2, -1.5, 1.5)
+    tri3 = mqlm.tri_prism_x(10, -1, 5, 2/2, -1.5, 1.5)
+    tri2 = rot.rotate_qlm(tri2, 0, 0, -np.pi/2)
+    tri3 = rot.rotate_qlm(tri3, 0, 0, np.pi/2)
+    rqlmy4 = tri0 + tri1 + tri2 + tri3
+    rect5 = mshp.rectangle(1, 3, 2, 5, 1, 0, 1, 0, 10, 10, 10)
+    rqlmy5 = mglb.dmoments(10, rect5)
+    rect6 = mshp.rectangle(1, 3, 2, 5, 1, 0, 1, 0, 20, 20, 20)
+    rqlmy6 = mglb.dmoments(10, rect6)
+    assert (np.abs(rqlmy2 - rqlmy3) < 3e5*np.finfo(float).eps).all()
 
 
 def test_trixy():

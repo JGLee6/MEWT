@@ -1,0 +1,3 @@
+[submodule "NewtonianEotWashToolkit"]
+	path = NewtonianEotWashToolkit
+	url = https://github.com/4kbt/NewtonianEotWashToolkit.git
