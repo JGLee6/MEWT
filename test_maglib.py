@@ -444,6 +444,9 @@ def test_recx():
     rect6 = mshp.rectangle(1, 2, 5, 3, 1, 1, 0, 0, 20, 20, 20)
     rqlmx6 = mglb.dmoments(10, rect6)
     assert (np.abs(rqlmx2 - rqlmx3) < 3e5*np.finfo(float).eps).all()
+    assert (np.abs(rqlmx2 - rqlmx4) < 3e5*np.finfo(float).eps).all()
+    # PointDipole gets bad after l=2
+    assert (np.abs(rqlmx2 - rqlmx6) < 3e5*np.finfo(float).eps)[:3].all()
 
 
 def test_recy():
@@ -457,8 +460,8 @@ def test_recy():
     tri1 = rot.rotate_qlm(tri1, 0, 0, np.pi)
     tri2 = mqlm.tri_prism_x(10, 1, 5, 2/2, -1.5, 1.5)
     tri3 = mqlm.tri_prism_x(10, -1, 5, 2/2, -1.5, 1.5)
-    tri2 = rot.rotate_qlm(tri2, 0, 0, -np.pi/2)
-    tri3 = rot.rotate_qlm(tri3, 0, 0, np.pi/2)
+    tri2 = rot.rotate_qlm(tri2, 0, 0, np.pi/2)
+    tri3 = rot.rotate_qlm(tri3, 0, 0, -np.pi/2)
     rqlmy4 = tri0 + tri1 + tri2 + tri3
     rect5 = mshp.rectangle(1, 3, 2, 5, 1, 0, 1, 0, 10, 10, 10)
     rqlmy5 = mglb.dmoments(10, rect5)
