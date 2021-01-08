@@ -813,9 +813,9 @@ def annulus_y(L, My, H, Ri, Ro, phic, phih):
 
 def cone_z(L, Mz, H, R, phic, phih):
     """
-    Only L-M odd survive. We use the notation of Stirling and Schlamminger to
-    compute the inner moments of a section of a cone. This is a non-recursive
-    attempt. The solid has a height H and extends above the xy-plane by H.
+    We use the notation of Stirling and Schlamminger to compute the inner
+    moments of a section of a cone. The solid has a radius R and extends above
+    the xy-plane by H.
 
     Inputs
     ------
@@ -843,14 +843,14 @@ def cone_z(L, Mz, H, R, phic, phih):
     if (H == 0) or (R <= 0) or (phih == 0) or (phih > np.pi):
         return qlm
     factor *= phih*2
-    for l in range(L+1):
+    for l in range(1, L+1):
         fac = factor*np.sqrt(2*l+1)
         for m in range(l+1):
             fac2 = fac*np.sqrt(np.exp(sp.gammaln(l+m+1)+sp.gammaln(l-m+1)))
             fac2 *= np.sinc(m*phih/np.pi)*np.exp(-1j*m*phic)
-            # Make sure (l-m) odd
-            if ((l-m) % 2 == 1):
-                for k in range((l-m)//2+1):
+            # Make sure (l-m) > 0
+            if ((l-m) >= 0):
+                for k in range((l-m)//2):
                     gamsum = sp.gammaln(k+1) + sp.gammaln(m+k+1)
                     gamsum += sp.gammaln(l+3)
                     gamsum -= sp.gammaln(2*k+m+2)
@@ -905,7 +905,7 @@ def cone_r(L, Mr, H, R, phic, phih):
             fac2 = fac*np.sqrt(np.exp(sp.gammaln(l+m+1)+sp.gammaln(l-m+1)))
             fac2 *= np.sinc(m*phih/np.pi)*np.exp(-1j*m*phic)
             # Make sure (l-m) even
-            if ((l-m) % 2 == 0):
+            if ((l-m) > 0) or (m > 0):
                 for k in range((l-m)//2+1):
                     m2k = 2*k+m
                     gamsum = sp.gammaln(k+1) + sp.gammaln(m+k+1)

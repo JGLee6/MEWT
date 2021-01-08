@@ -50,8 +50,8 @@ def test_dmomx():
     lmax = 10
     dmom = mglb.dmoments(lmax, mag1)
     pred = np.zeros([lmax+1, 2*lmax+1], dtype='complex')
-    pred[1, lmax+1] = np.sqrt(3/(4*np.pi))/np.sqrt(2)
-    pred[1, lmax-1] = -np.sqrt(3/(4*np.pi))/np.sqrt(2)
+    pred[1, lmax+1] = -np.sqrt(3/(4*np.pi))/np.sqrt(2)
+    pred[1, lmax-1] = np.sqrt(3/(4*np.pi))/np.sqrt(2)
     assert (np.abs(dmom - pred) < 10*np.finfo(float).eps).all()
     # Check if moved to [1, 0, 0]
     mag1 = np.array([[1, 1, 0, 0, 1, 1, 0, 0]])
@@ -79,8 +79,8 @@ def test_dmomy():
     lmax = 10
     dmom = mglb.dmoments(lmax, mag1)
     pred = np.zeros([lmax+1, 2*lmax+1], dtype='complex')
-    pred[1, lmax+1] = -np.sqrt(3/(4*np.pi))/np.sqrt(2)*1j
-    pred[1, lmax-1] = -np.sqrt(3/(4*np.pi))/np.sqrt(2)*1j
+    pred[1, lmax+1] = np.sqrt(3/(4*np.pi))/np.sqrt(2)*1j
+    pred[1, lmax-1] = np.sqrt(3/(4*np.pi))/np.sqrt(2)*1j
     assert (np.abs(dmom - pred) < 10*np.finfo(float).eps).all()
     # Check if moved to [1, 0, 0]
     mag1 = np.array([[1, 1, 0, 0, 1, 0, 1, 0]])
@@ -117,8 +117,8 @@ def test_rot():
     magtx = np.array([[1, 1, 0, 0, 1, 1, 0, 0]])
     dmomtx = mglb.dmoments(lmax, magtx)
     assert (np.abs(dmomtx - dmomxt) < 2e2*np.finfo(float).eps).all()
-    # z-dip at [0, 0, 1] -> rotate to x-axis
-    dmomxrt = rot.rotate_qlm(dmomzt, 0, -np.pi/2, 0)
+    # z-dip at [0, 0, 1] -> rotate z to x-axis
+    dmomxrt = rot.rotate_qlm(dmomzt, 0, np.pi/2, 0)
     assert (np.abs(dmomxrt - dmomxt) < 2e2*np.finfo(float).eps).all()
     # np.where(np.abs(dmomxrt - dmomxt) > 2e2*np.finfo(float).eps)
 
@@ -423,6 +423,9 @@ def test_rect():
     tri1 = rot.rotate_qlm(tri0, 0, 0, np.pi)
     tri3 = rot.rotate_qlm(tri2, 0, 0, np.pi)
     rqlm3 = tri0 + tri1 + tri2 + tri3
+    assert (np.abs(rqlm0 - rqlm1) < 3e5*np.finfo(float).eps).all()
+    assert (np.abs(rqlm0 - rqlm2) < 3e5*np.finfo(float).eps)[:3].all()
+    assert (np.abs(rqlm0 - rqlm3) < 3e5*np.finfo(float).eps).all()
 
 
 def test_recx():
@@ -468,24 +471,73 @@ def test_recy():
     rect6 = mshp.rectangle(1, 3, 2, 5, 1, 0, 1, 0, 20, 20, 20)
     rqlmy6 = mglb.dmoments(10, rect6)
     assert (np.abs(rqlmy2 - rqlmy3) < 3e5*np.finfo(float).eps).all()
+    assert (np.abs(rqlmy4 - rqlmy3) < 3e5*np.finfo(float).eps).all()
 
 
-def test_trixy():
+def test_tri():
     # Make analytic versions
-    tri0 = mqlm.tri_prism_x(10, 1, 3, 2/2, -2.5, 2.5)
-    tri1 = mqlm.tri_prism_x(10, -1, 3, 2/2, -2.5, 2.5)
-    tri1 = rot.rotate_qlm(tri1, 0, 0, np.pi)
-    tri2 = mqlm.tri_prism_y(10, 1, 3, 5/2, -1, 1)
-    tri3 = mqlm.tri_prism_y(10, -1, 3, 5/2, -1, 1)
-    #tri2 = rot.rotate_qlm(tri2, 0, 0, -np.pi/2)
-    #tri3 = rot.rotate_qlm(tri3, 0, 0, np.pi/2)
+    H = 3
+    dy = 5/2
+    y1y = -1
+    y2y = 1
+    y1x = -2.5
+    y2x = 2.5
+    dx = 1
+    L = 10
+    tri0 = mqlm.tri_prism_x(L, 1, H, dx, y1x, y2x)
+    tri2 = mqlm.tri_prism_y(L, 1, H, dy, y1y, y2y)
     # Create point-dipole versions
-    tri0b = mshp.tri_prism(1, 1, -3/2, 3/2, 5, 1, 1, 0, 0, 10, 10, 10)
-    tri1b = mshp.tri_prism(1, 1, -3/2, 3/2, 5, 1, -1, 0, 0, 10, 10, 10)
-    tri1b = mglb.rotate_dipole_array(tri1b, np.pi, [0, 0, 1])
-    tri2b = mshp.tri_prism(1, 3/2, -1, 1, 5, 1, 0, 1, 0, 10, 10, 10)
-    tri3b = mshp.tri_prism(1, 3/2, -1, 1, 5, 1, 0, -1, 0, 10, 10, 10)
-    #tri2b = mglb.rotate_dipole_array(tri2b, -np.pi/2, [0, 0, 1])
-    #tri3b = mglb.rotate_dipole_array(tri3b, np.pi/2, [0, 0, 1])
-    tqlmx = mglb.dmoments(10, tri0b)
-    tqlmy = mglb.dmoments(10, tri2b)
+    N = 20
+    tri0b = mshp.tri_prism(1, dx, y1x, y2x, H, 1, 1, 0, 0, N, N, N)
+    tri2b = mshp.tri_prism(1, dy, y1y, y2y, H, 1, 0, 1, 0, N, N, N)
+    tqlmx = mglb.dmoments(L, tri0b)
+    tqlmy = mglb.dmoments(L, tri2b)
+    idsx = np.nonzero(tri0)
+    assert (np.abs((tri0[idsx] - tqlmx[idsx])/tri0[idsx]) < 1e-1)[:15].all()
+    idsy = np.nonzero(tri2)
+    assert (np.abs((tri2[idsy] - tqlmy[idsy])/tri2[idsy]) < 1e-2)[:32].all()
+    tri0 = mqlm.tri_prism_z(L, 1, H, dx, y1x, y2x)
+    tri0b = mshp.tri_prism(1, dx, y1x, y2x, H, 1, 0, 0, 1, N, N, N)
+    tqlmz = mglb.dmoments(L, tri0b)
+    idsz = np.nonzero(tri0)
+    assert (np.abs((tri0[idsz] - tqlmz[idsz])/tri0[idsz]) < 0.25)[:30].all()
+
+def test_ann():
+    H = 3
+    IR = 1.5
+    OR = 2
+    L = 10
+    N = 20
+    annx = mqlm.annulus_x(L, 1, H, IR, OR, 0, np.pi)
+    anny = mqlm.annulus_y(L, 1, H, IR, OR, 0, np.pi)
+    annx2 = rot.rotate_qlm(anny, 0, -np.pi/2, 0)
+    assert (np.abs(annx - annx2) < 3e3*np.finfo(float).eps).all()
+
+
+def test_cone():
+    H = 3
+    R = 2
+    L = 10
+    N = 30
+    beta = np.pi
+    conx = mqlm.cone_x(L, 1, H, R, 0, beta)
+    cony = mqlm.cone_y(L, 1, H, R, 0, beta)
+    conx2 = rot.rotate_qlm(cony, 0, -np.pi/2, 0)
+    assert (np.abs(conx - conx2) < 3e3*np.finfo(float).eps).all()
+    sconx = mshp.cone(1, R, H, beta, 1, 1, 0, 0, N, N)
+    mconx = mglb.dmoments(L, sconx)
+    assert (np.abs(conx - mconx) < 3e3*np.finfo(float).eps)[:3].all()
+    conz = mqlm.cone_z(L, 1, H, R, 0, beta)
+    sconz = mshp.cone(1, R, H, beta, 1, 0, 0, 1, N, N)
+    mconz = mglb.dmoments(L, sconz)
+    assert (np.abs(conz - mconz) < 3e3*np.finfo(float).eps)[:3].all()
+    conr = mqlm.cone_r(L, 1, H, R, 0, beta)
+    sconr = mshp.cone_rho(1, R, H, beta, 1, N, N)
+    mconr = mglb.dmoments(L, sconr)
+    conp = mqlm.cone_p(L, 1, H, R, 0, beta)
+    sconp = mshp.cone_phi(1, R, H, beta, 1, N, N)
+    mconp = mglb.dmoments(L, sconp)
+    beta = np.pi/6
+    conp = mqlm.cone_p(L, 1, H, R, 0, beta)
+    sconp = mshp.cone_phi(1, R, H, beta, 1, N, N)
+    mconp = mglb.dmoments(L, sconp)

@@ -32,8 +32,6 @@ assert (np.abs(dmomtx - dmomxt) < 2e2*np.finfo(float).eps).all()
 # z-dip at [0, 0, 1] -> rotate to x-dip at [1, 0, 0]
 dmomxrt = rot.rotate_qlm(dmomzt, 0, np.pi/2, 0)
 assert (np.abs(dmomxrt - dmomxt) < 4e2*np.finfo(float).eps).all()
-# Fails for even l
-# np.where(np.abs(dmomxrt - dmomxt) > 2e2*np.finfo(float).eps)
 
 # What about for a positive rotation about y-axis?
 # -x-dip at origin -> mom -> [-1, 0, 0]
@@ -47,9 +45,39 @@ assert (np.abs(dmommtx - dmommxt) < 2e2*np.finfo(float).eps).all()
 # z-dip at [0, 0, 1] -> rotate to -x-dip at [-1, 0, 0]
 dmommxrt = rot.rotate_qlm(dmomzt, 0, -np.pi/2, 0)
 assert (np.abs(dmommxrt - dmommxt) < 2e2*np.finfo(float).eps).all()
-# Fails for even l still
 
-# Does it fail just for gravity?
+magx = np.array([[1, 0, 0, 0, 1, 1, 0, 0]])
+magy = np.array([[1, 0, 0, 0, 1, 0, 1, 0]])
+magz = np.array([[1, 0, 0, 0, 1, 0, 0, 1]])
+dmomx = mglb.dmoments(lmax, magx)
+dmomy = mglb.dmoments(lmax, magy)
+dmomz = mglb.dmoments(lmax, magz)
+dmomxt = trs.translate_qlm(dmomx, [1, 0, 0])
+dmomyt = trs.translate_qlm(dmomy, [0, 1, 0])
+dmomzt = trs.translate_qlm(dmomz, [0, 0, 1])
+dmomxtb = mglb.dmoments(lmax, mglb.translate_dipole_array(magx, [1, 0, 0]))
+dmomytb = mglb.dmoments(lmax, mglb.translate_dipole_array(magy, [0, 1, 0]))
+dmomztb = mglb.dmoments(lmax, mglb.translate_dipole_array(magz, [0, 0, 1]))
+# Check x at origin rotates to y
+dmomxry = rot.rotate_qlm(dmomx, 0, 0, np.pi/2)
+assert (np.abs(dmomy - dmomxry) < 2e2*np.finfo(float).eps).all()
+# Check y at origin rotates to z
+dmomyrz = rot.rotate_qlm(dmomy, 0, np.pi/2, np.pi/2)
+assert (np.abs(dmomz - dmomyrz) < 2e2*np.finfo(float).eps).all()
+# Check z at origin rotates to x
+dmomzrx = rot.rotate_qlm(dmomz, 0, np.pi/2, 0)
+assert (np.abs(dmomx - dmomzrx) < 2e2*np.finfo(float).eps).all()
+# Check trans x rotates to trans y
+dmomxtry = rot.rotate_qlm(dmomxt, 0, 0, np.pi/2)
+assert (np.abs(dmomytb - dmomxtry) < 2e2*np.finfo(float).eps).all()
+# Check trans y rotates to trans z
+dmomytrz = rot.rotate_qlm(dmomyt, 0, np.pi/2, np.pi/2)
+assert (np.abs(dmomztb - dmomytrz) < 2e2*np.finfo(float).eps).all()
+# Check trans z rotates to trans x
+dmomztrx = rot.rotate_qlm(dmomzt, 0, np.pi/2, 0)
+assert (np.abs(dmomxtb - dmomztrx) < 2e2*np.finfo(float).eps).all()
+
+# What about just for gravity?
 # z-dip at origin -> mom -> [0, 0, 1]
 magz = np.array([[1, 0, 0, 0]])
 dmomz = pgm.qmoments(lmax, magz)
@@ -70,5 +98,3 @@ assert (np.abs(dmomtx - dmomxt) < 2e2*np.finfo(float).eps).all()
 # z-dip at [0, 0, 1] -> rotate to x-dip at [1, 0, 0]
 dmomxrt = rot.rotate_qlm(dmomzt, 0, np.pi/2, 0)
 assert (np.abs(dmomxrt - dmomxt) < 2e2*np.finfo(float).eps).all()
-# Now all odd l!
-np.where(np.abs(dmomxrt - dmomxt) > 2e2*np.finfo(float).eps)
