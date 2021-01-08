@@ -184,6 +184,362 @@ def wedge(mass, iR, oR, t, beta, s, sx, sy, sz, nx, nz):
     return pointArray
 
 
+def wedge_rho(mass, iR, oR, t, beta, s, nx, nz):
+    """
+    Creates point masses distributed in an annulus of mass m with radially-
+    polarized spin density, s.
+
+    Inputs
+    ------
+    m : float
+        mass in kg
+    iR : float
+        inner radius of annulus in m
+    oR : float
+        outer radius of annulus in m
+    t : float
+        thickness of annulus in m
+    beta : float
+        half of the subtended angle in radians
+    nx : float
+        number of points distributed in x,y
+    nz : float
+        number of points distributed in z
+
+    Returns
+    -------
+    pointArray : ndarray
+        point mass array of format [m, x, y, z]
+    """
+    xmax = oR
+    if beta < np.pi/2:
+        xmin = np.cos(beta)*iR
+        ymax = np.sin(beta)*oR
+    else:
+        xmin = np.cos(beta)*oR
+        ymax = oR
+    xave = (xmax+xmin)/2
+    zgrid = t/nz
+    xgrid = (xmax-xmin)/nx
+    ygrid = 2*ymax/nx
+
+    boxvol = t*(xmax-xmin)*ymax*2
+    vol = beta*(oR**2-iR**2)*t
+    density = mass/vol
+    pointMass = density*xgrid*ygrid*zgrid
+
+    pointArray = np.zeros([nx*nx*nz, 8])
+    pointArray[:, 0] = pointMass
+    ctr = 0
+    for k in range(nz):
+        for l in range(nx):
+            for m in range(nx):
+                # idx = k*nx*nx+l*nx+m
+                x = (m-(nx-1)/2)*xgrid + xave
+                y = (l-(nx-1)/2)*ygrid
+                z = (k-(nz-1)/2)*zgrid
+                r = np.sqrt(x**2 + y**2)
+                q = np.arctan2(y, x)
+                if np.abs(q) <= beta and r <= oR and r >= iR:
+                    rhohatx, rhohaty = x/r, y/r
+                    pointArray[ctr, 1:4] = [x, y, z]
+                    pointArray[ctr, 4:] = [s, rhohatx, rhohaty, 0]
+                    ctr += 1
+
+    pointArray = pointArray[:ctr]
+
+    # Correct the masses of the points
+    pointArray[:, 0] *= mass/np.sum(pointArray[:, 0])
+    # pointArray[:, 4] = s*boxvol/(nz*nx*nx)
+    # pointArray[:, 5:] = sx, sy, sz
+
+    return pointArray
+
+
+def wedge_phi(mass, iR, oR, t, beta, s, nx, nz):
+    """
+    Creates point masses distributed in an annulus of mass m with azimuthally-
+    polarized spin density, s.
+
+    Inputs
+    ------
+    m : float
+        mass in kg
+    iR : float
+        inner radius of annulus in m
+    oR : float
+        outer radius of annulus in m
+    t : float
+        thickness of annulus in m
+    beta : float
+        half of the subtended angle in radians
+    nx : float
+        number of points distributed in x,y
+    nz : float
+        number of points distributed in z
+
+    Returns
+    -------
+    pointArray : ndarray
+        point mass array of format [m, x, y, z]
+    """
+    xmax = oR
+    if beta < np.pi/2:
+        xmin = np.cos(beta)*iR
+        ymax = np.sin(beta)*oR
+    else:
+        xmin = np.cos(beta)*oR
+        ymax = oR
+    xave = (xmax+xmin)/2
+    zgrid = t/nz
+    xgrid = (xmax-xmin)/nx
+    ygrid = 2*ymax/nx
+
+    boxvol = t*(xmax-xmin)*ymax*2
+    vol = beta*(oR**2-iR**2)*t
+    density = mass/vol
+    pointMass = density*xgrid*ygrid*zgrid
+
+    pointArray = np.zeros([nx*nx*nz, 8])
+    pointArray[:, 0] = pointMass
+    ctr = 0
+    for k in range(nz):
+        for l in range(nx):
+            for m in range(nx):
+                # idx = k*nx*nx+l*nx+m
+                x = (m-(nx-1)/2)*xgrid + xave
+                y = (l-(nx-1)/2)*ygrid
+                z = (k-(nz-1)/2)*zgrid
+                r = np.sqrt(x**2 + y**2)
+                q = np.arctan2(y, x)
+                if np.abs(q) <= beta and r <= oR and r >= iR:
+                    phihatx, phihaty = -y/r, x/r
+                    pointArray[ctr, 1:4] = [x, y, z]
+                    pointArray[ctr, 4:] = [s, phihatx, phihaty, 0]
+                    ctr += 1
+
+    pointArray = pointArray[:ctr]
+
+    # Correct the masses of the points
+    pointArray[:, 0] *= mass/np.sum(pointArray[:, 0])
+    # pointArray[:, 4] = s*boxvol/(nz*nx*nx)
+    # pointArray[:, 5:] = sx, sy, sz
+
+    return pointArray
+
+
+def cone(mass, R, H, beta, s, sx, sy, sz, nx, nz):
+    """
+    Creates point masses distributed in a section of a cone of mass m and spin-
+    density s.
+
+    Inputs
+    ------
+    m : float
+        mass in kg
+    R : float
+        radius of cone section in m
+    H : float
+        height of cone above xy-plane in m
+    beta : float
+        half of the subtended angle in radians
+    nx : float
+        number of points distributed in x,y
+    nz : float
+        number of points distributed in z
+
+    Returns
+    -------
+    pointArray : ndarray
+        point mass array of format [m, x, y, z]
+    """
+    xmax = R
+    if beta < np.pi/2:
+        xmin = 0
+        ymax = np.sin(beta)*R
+    else:
+        xmin = np.cos(beta)*R
+        ymax = R
+    xave = (xmax+xmin)/2
+    zgrid = H/nz
+    xgrid = (xmax-xmin)/nx
+    ygrid = 2*ymax/nx
+
+    boxvol = H*(xmax-xmin)*ymax*2
+    vol = H*beta*R**2/3
+    density = mass/vol
+    pointMass = density*xgrid*ygrid*zgrid
+
+    pointArray = np.zeros([nx*nx*nz, 8])
+    pointArray[:, 0] = pointMass
+    ctr = 0
+    for k in range(nz):
+        for l in range(nx):
+            for m in range(nx):
+                # idx = k*nx*nx+l*nx+m
+                x = (m-(nx-1)/2)*xgrid + xave
+                y = (l-(nx-1)/2)*ygrid
+                z = (k-(nz-1)/2)*zgrid + H/2
+                r = np.sqrt(x**2 + y**2)
+                q = np.arctan2(y, x)
+                if np.abs(q) <= beta and r <= R and r**2 <= R**2*(1-z/H)**2:
+                    pointArray[ctr, 1:4] = [x, y, z]
+                    ctr += 1
+
+    pointArray = pointArray[:ctr]
+
+    # Correct the masses of the points
+    pointArray[:, 0] *= mass/np.sum(pointArray[:, 0])
+    pointArray[:, 4] = s*boxvol/(nz*nx*nx)
+    pointArray[:, 5:] = sx, sy, sz
+
+    return pointArray
+
+
+def cone_rho(mass, R, H, beta, s, nx, nz):
+    """
+    Creates point masses distributed in a section of a cone of mass m and spin-
+    density s oriented radially from z-axis.
+
+    Inputs
+    ------
+    m : float
+        mass in kg
+    R : float
+        radius of cone section in m
+    H : float
+        height of cone above xy-plane in m
+    beta : float
+        half of the subtended angle in radians
+    nx : float
+        number of points distributed in x,y
+    nz : float
+        number of points distributed in z
+
+    Returns
+    -------
+    pointArray : ndarray
+        point mass array of format [m, x, y, z]
+    """
+    xmax = R
+    if beta < np.pi/2:
+        xmin = 0
+        ymax = np.sin(beta)*R
+    else:
+        xmin = np.cos(beta)*R
+        ymax = R
+    xave = (xmax+xmin)/2
+    zgrid = H/nz
+    xgrid = (xmax-xmin)/nx
+    ygrid = 2*ymax/nx
+
+    boxvol = H*(xmax-xmin)*ymax*2
+    vol = H*beta*R**2/3
+    density = mass/vol
+    pointMass = density*xgrid*ygrid*zgrid
+
+    pointArray = np.zeros([nx*nx*nz, 8])
+    pointArray[:, 0] = pointMass
+    ctr = 0
+    for k in range(nz):
+        for l in range(nx):
+            for m in range(nx):
+                # idx = k*nx*nx+l*nx+m
+                x = (m-(nx-1)/2)*xgrid + xave
+                y = (l-(nx-1)/2)*ygrid
+                z = (k-(nz-1)/2)*zgrid + H/2
+                r = np.sqrt(x**2 + y**2)
+                q = np.arctan2(y, x)
+                if np.abs(q) <= beta and r <= R and r**2 <= R**2*(1-z/H)**2:
+                    if r != 0:
+                        sr, rhohatx, rhohaty = s, x/r, y/r
+                    else:
+                        sr, rhohatx, rhohaty = 0, 0, 0
+                    pointArray[ctr, 1:4] = [x, y, z]
+                    pointArray[ctr, 4:] = [sr, rhohatx, rhohaty, 0]
+                    ctr += 1
+
+    pointArray = pointArray[:ctr]
+
+    # Correct the masses of the points
+    pointArray[:, 0] *= mass/np.sum(pointArray[:, 0])
+    pointArray[:, 4] = s*boxvol/(nz*nx*nx)
+
+    return pointArray
+
+
+def cone_phi(mass, R, H, beta, s, nx, nz):
+    """
+    Creates point masses distributed in a section of a cone of mass m and spin-
+    density s oriented azimuthally around z-axis.
+
+    Inputs
+    ------
+    m : float
+        mass in kg
+    R : float
+        radius of cone section in m
+    H : float
+        height of cone above xy-plane in m
+    beta : float
+        half of the subtended angle in radians
+    nx : float
+        number of points distributed in x,y
+    nz : float
+        number of points distributed in z
+
+    Returns
+    -------
+    pointArray : ndarray
+        point mass array of format [m, x, y, z]
+    """
+    xmax = R
+    if beta < np.pi/2:
+        xmin = 0
+        ymax = np.sin(beta)*R
+    else:
+        xmin = np.cos(beta)*R
+        ymax = R
+    xave = (xmax+xmin)/2
+    zgrid = H/nz
+    xgrid = (xmax-xmin)/nx
+    ygrid = 2*ymax/nx
+
+    boxvol = H*(xmax-xmin)*ymax*2
+    vol = H*beta*R**2/3
+    density = mass/vol
+    pointMass = density*xgrid*ygrid*zgrid
+
+    pointArray = np.zeros([nx*nx*nz, 8])
+    pointArray[:, 0] = pointMass
+    ctr = 0
+    for k in range(nz):
+        for l in range(nx):
+            for m in range(nx):
+                # idx = k*nx*nx+l*nx+m
+                x = (m-(nx-1)/2)*xgrid + xave
+                y = (l-(nx-1)/2)*ygrid
+                z = (k-(nz-1)/2)*zgrid + H/2
+                r = np.sqrt(x**2 + y**2)
+                q = np.arctan2(y, x)
+                if np.abs(q) <= beta and r <= R and r**2 <= R**2*(1-z/H)**2:
+                    if r != 0:
+                        sp, phihatx, phihaty = s, -y/r, x/r
+                    else:
+                        sp, phihatx, phihaty = 0, 0, 0
+                    pointArray[ctr, 1:4] = [x, y, z]
+                    pointArray[ctr, 4:] = [sp, phihatx, phihaty, 0]
+                    ctr += 1
+
+    pointArray = pointArray[:ctr]
+
+    # Correct the masses of the points
+    pointArray[:, 0] *= mass/np.sum(pointArray[:, 0])
+    pointArray[:, 4] = s*boxvol/(nz*nx*nx)
+
+    return pointArray
+
+
 def tri_prism(mass, d, y1, y2, t, s, sx, sy, sz, nx, ny, nz):
     """
     Creates point masses distributed in a triangular prism of mass m.
