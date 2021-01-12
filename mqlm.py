@@ -555,7 +555,7 @@ def annulus_z(L, Mz, H, Ri, Ro, phic, phih):
     if (H == 0) or (Ro < Ri) or (phih == 0) or (phih > np.pi):
         return qlm
     factor *= phih
-    for l in range(L+1):
+    for l in range(1, L+1):
         fac = factor*np.sqrt(2*l+1)
         for m in range(l+1):
             fac2 = fac*np.sqrt(np.exp(sp.gammaln(l+m+1)+sp.gammaln(l-m+1)))
@@ -848,17 +848,17 @@ def cone_z(L, Mz, H, R, phic, phih):
         for m in range(l+1):
             fac2 = fac*np.sqrt(np.exp(sp.gammaln(l+m+1)+sp.gammaln(l-m+1)))
             fac2 *= np.sinc(m*phih/np.pi)*np.exp(-1j*m*phic)
-            # Make sure (l-m) > 0
-            if ((l-m) >= 0):
-                for k in range((l-m)//2):
+            # Make sure (l-m-2k) > 0
+            for k in range((l-m)//2+1):
+                if ((l-m-2*k) > 0):
                     gamsum = sp.gammaln(k+1) + sp.gammaln(m+k+1)
                     gamsum += sp.gammaln(l+3)
                     gamsum -= sp.gammaln(2*k+m+2)
                     slk = (-1)**(k+m)*H**(l-2*k-m)/(2**(2*k+m))
                     slk *= R**(2*k+m+2)/np.exp(gamsum)
                     qlm[l, L+m] += slk
-                # Multiply by factor dependent only on (l,m)
-                qlm[l, L+m] *= fac2
+            # Multiply by factor dependent only on (l,m)
+            qlm[l, L+m] *= fac2
     # Moments always satisfy q(l, -m) = (-1)^m q(l, m)*
     ms = np.arange(-L, L+1)
     mfac = (-1)**(np.abs(ms))
@@ -904,9 +904,8 @@ def cone_r(L, Mr, H, R, phic, phih):
         for m in range(l+1):
             fac2 = fac*np.sqrt(np.exp(sp.gammaln(l+m+1)+sp.gammaln(l-m+1)))
             fac2 *= np.sinc(m*phih/np.pi)*np.exp(-1j*m*phic)
-            # Make sure (l-m) even
-            if ((l-m) > 0) or (m > 0):
-                for k in range((l-m)//2+1):
+            for k in range((l-m)//2+1):
+                if (m+2*k > 0):
                     m2k = 2*k+m
                     gamsum = sp.gammaln(k+1) + sp.gammaln(m+k+1)
                     gamsum += sp.gammaln(l+3)
@@ -914,8 +913,8 @@ def cone_r(L, Mr, H, R, phic, phih):
                     slk = (-1)**(k+m)*H**(l-m2k+1)*m2k/(2**m2k)
                     slk *= R**(m2k+1)/np.exp(gamsum)
                     qlm[l, L+m] += slk
-                # Multiply by factor dependent only on (l,m)
-                qlm[l, L+m] *= fac2
+            # Multiply by factor dependent only on (l,m)
+            qlm[l, L+m] *= fac2
     # Moments always satisfy q(l, -m) = (-1)^m q(l, m)*
     ms = np.arange(-L, L+1)
     mfac = (-1)**(np.abs(ms))
@@ -960,18 +959,16 @@ def cone_p(L, Mp, H, R, phic, phih):
         for m in range(1, l+1):
             fac2 = fac*np.sqrt(np.exp(sp.gammaln(l+m+1)+sp.gammaln(l-m+1)))
             fac2 *= 1j*np.sin(m*phih)*np.exp(-1j*m*phic)
-            # Make sure (l-m) even
-            if ((l-m) % 2 == 0):
-                for k in range((l-m)//2+1):
-                    m2k = 2*k+m
-                    gamsum = sp.gammaln(k+1) + sp.gammaln(m+k+1)
-                    gamsum += sp.gammaln(l+3)
-                    gamsum -= sp.gammaln(m2k+1)
-                    slk = (-1)**(k+m)*H**(l-m2k+1)/(2**(m2k-1))
-                    slk *= R**(m2k+1)/np.exp(gamsum)
-                    qlm[l, L+m] += slk
-                # Multiply by factor dependent only on (l,m)
-                qlm[l, L+m] *= fac2
+            for k in range((l-m)//2+1):
+                m2k = 2*k+m
+                gamsum = sp.gammaln(k+1) + sp.gammaln(m+k+1)
+                gamsum += sp.gammaln(l+3)
+                gamsum -= sp.gammaln(m2k+1)
+                slk = (-1)**(k+m)*H**(l-m2k+1)/(2**(m2k-1))
+                slk *= R**(m2k+1)/np.exp(gamsum)
+                qlm[l, L+m] += slk
+            # Multiply by factor dependent only on (l,m)
+            qlm[l, L+m] *= fac2
     # Moments always satisfy q(l, -m) = (-1)^m q(l, m)*
     ms = np.arange(-L, L+1)
     mfac = (-1)**(np.abs(ms))

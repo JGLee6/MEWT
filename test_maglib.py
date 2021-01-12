@@ -508,10 +508,19 @@ def test_ann():
     OR = 2
     L = 10
     N = 20
+    beta = np.pi
     annx = mqlm.annulus_x(L, 1, H, IR, OR, 0, np.pi)
     anny = mqlm.annulus_y(L, 1, H, IR, OR, 0, np.pi)
     annx2 = rot.rotate_qlm(anny, 0, -np.pi/2, 0)
     assert (np.abs(annx - annx2) < 3e3*np.finfo(float).eps).all()
+    annz = mqlm.annulus_z(L, 1, H, IR, OR, 0, beta)
+    sannz = mshp.annulus(1, IR, OR, H, 1, 0, 0, 1, N, N)
+    mannz = mglb.dmoments(L, sannz)
+    assert (np.abs(annz - mannz) < 0.1)[:3].all()
+    annr = mqlm.annulus_r(L, 1, H, IR, OR, 0, beta)
+    sannr = mshp.wedge_rho(1, IR, OR, H, beta, 1, N, N)
+    mannr = mglb.dmoments(L, sannr)
+    assert (np.abs(annr - mannr) < 0.1)[:3].all()
 
 
 def test_cone():
@@ -522,18 +531,19 @@ def test_cone():
     beta = np.pi
     conx = mqlm.cone_x(L, 1, H, R, 0, beta)
     cony = mqlm.cone_y(L, 1, H, R, 0, beta)
-    conx2 = rot.rotate_qlm(cony, 0, -np.pi/2, 0)
+    conx2 = rot.rotate_qlm(cony, 0, 0, -np.pi/2)
     assert (np.abs(conx - conx2) < 3e3*np.finfo(float).eps).all()
     sconx = mshp.cone(1, R, H, beta, 1, 1, 0, 0, N, N)
     mconx = mglb.dmoments(L, sconx)
-    assert (np.abs(conx - mconx) < 3e3*np.finfo(float).eps)[:3].all()
+    assert (np.abs(conx - mconx) < 0.1)[:3].all()
     conz = mqlm.cone_z(L, 1, H, R, 0, beta)
     sconz = mshp.cone(1, R, H, beta, 1, 0, 0, 1, N, N)
     mconz = mglb.dmoments(L, sconz)
-    assert (np.abs(conz - mconz) < 3e3*np.finfo(float).eps)[:3].all()
+    assert (np.abs(conz - mconz) < 0.1)[:3].all()
     conr = mqlm.cone_r(L, 1, H, R, 0, beta)
     sconr = mshp.cone_rho(1, R, H, beta, 1, N, N)
     mconr = mglb.dmoments(L, sconr)
+    assert (np.abs(conr - mconr) < 0.2)[:3].all()
     conp = mqlm.cone_p(L, 1, H, R, 0, beta)
     sconp = mshp.cone_phi(1, R, H, beta, 1, N, N)
     mconp = mglb.dmoments(L, sconp)

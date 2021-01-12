@@ -241,16 +241,19 @@ def wedge_rho(mass, iR, oR, t, beta, s, nx, nz):
                 r = np.sqrt(x**2 + y**2)
                 q = np.arctan2(y, x)
                 if np.abs(q) <= beta and r <= oR and r >= iR:
-                    rhohatx, rhohaty = x/r, y/r
+                    if r != 0:
+                        sr, rhohatx, rhohaty = s, x/r, y/r
+                    else:
+                        sr, rhohatx, rhohaty = 0, 0, 0
                     pointArray[ctr, 1:4] = [x, y, z]
-                    pointArray[ctr, 4:] = [s, rhohatx, rhohaty, 0]
+                    pointArray[ctr, 4:] = [sr, rhohatx, rhohaty, 0]
                     ctr += 1
 
     pointArray = pointArray[:ctr]
 
     # Correct the masses of the points
     pointArray[:, 0] *= mass/np.sum(pointArray[:, 0])
-    # pointArray[:, 4] = s*boxvol/(nz*nx*nx)
+    pointArray[:, 4] = s*boxvol/(nz*nx*nx)
     # pointArray[:, 5:] = sx, sy, sz
 
     return pointArray
@@ -322,7 +325,7 @@ def wedge_phi(mass, iR, oR, t, beta, s, nx, nz):
 
     # Correct the masses of the points
     pointArray[:, 0] *= mass/np.sum(pointArray[:, 0])
-    # pointArray[:, 4] = s*boxvol/(nz*nx*nx)
+    pointArray[:, 4] = s*boxvol/(nz*nx*nx)
     # pointArray[:, 5:] = sx, sy, sz
 
     return pointArray
