@@ -665,7 +665,7 @@ def annulus_p(L, Mp, H, Ri, Ro, phic, phih):
     qlm : ndarray, complex
         (L+1)x(2L+1) array of complex moment values
     """
-    factor = Mp*np.sqrt(1/(4.*np.pi))
+    factor = -Mp*np.sqrt(1/(4.*np.pi))
     qlm = np.zeros([L+1, 2*L+1], dtype='complex')
     phih = phih % (2*np.pi)
     if (H == 0) or (Ro < Ri) or (phih == 0) or (phih > np.pi):
@@ -740,8 +740,8 @@ def annulus_x(L, Mx, H, Ri, Ro, phic, phih):
                     gamsum += sp.gammaln(l-m-2*k+2)
                     slk = (-1)**(k+m)*H**(l-2*k-m+1)/(2**l*(2*k+m+1))
                     slk *= (Ro**(2*k+m+1) - Ri**(2*k+m+1))/np.exp(gamsum)
-                    qlm[l, L+m] += slk*(2*k+2*m)*np.sinc((m+1)*phih/np.pi)
-                    qlm[l, L+m] += slk*(2*k)*np.sinc((m-1)*phih/np.pi)
+                    qlm[l, L+m] += slk*(2*k)*np.sinc((m+1)*phih/np.pi)
+                    qlm[l, L+m] += slk*(2*k+2*m)*np.sinc((m-1)*phih/np.pi)
                 # Multiply by factor dependent only on (l,m)
                 qlm[l, L+m] *= fac2
     # Moments always satisfy q(l, -m) = (-1)^m q(l, m)*
@@ -799,8 +799,8 @@ def annulus_y(L, My, H, Ri, Ro, phic, phih):
                     gamsum += sp.gammaln(l-m-2*k+2)
                     slk = (-1)**(k+m)*H**(l-2*k-m+1)/(2**l*(2*k+m+1))
                     slk *= (Ro**(2*k+m+1) - Ri**(2*k+m+1))/np.exp(gamsum)
-                    qlm[l, L+m] += slk*(-2*k)*np.sinc((m+1)*phih/np.pi)
-                    qlm[l, L+m] += slk*(2*k+2*m)*np.sinc((m-1)*phih/np.pi)
+                    qlm[l, L+m] += slk*(2*k)*np.sinc((m+1)*phih/np.pi)
+                    qlm[l, L+m] -= slk*(2*k+2*m)*np.sinc((m-1)*phih/np.pi)
                 # Multiply by factor dependent only on (l,m)
                 qlm[l, L+m] *= fac2
     # Moments always satisfy q(l, -m) = (-1)^m q(l, m)*
@@ -949,7 +949,7 @@ def cone_p(L, Mp, H, R, phic, phih):
     qlm : ndarray, complex
         (L+1)x(2L+1) array of complex moment values
     """
-    factor = Mp*np.sqrt(1/(4.*np.pi))
+    factor = -Mp*np.sqrt(1/(4.*np.pi))
     qlm = np.zeros([L+1, 2*L+1], dtype='complex')
     phih = phih % (2*np.pi)
     if (H == 0) or (R <= 0) or (phih == 0) or (phih > np.pi):
@@ -1014,19 +1014,17 @@ def cone_x(L, Mx, H, R, phic, phih):
         for m in range(1, l+1):
             fac2 = fac*np.sqrt(np.exp(sp.gammaln(l+m+1)+sp.gammaln(l-m+1)))
             fac2 *= np.exp(-1j*m*phic)
-            # Make sure (l-m) even
-            if ((l-m) % 2 == 0):
-                for k in range((l-m)//2+1):
-                    m2k = 2*k+m
-                    gamsum = sp.gammaln(k+1) + sp.gammaln(m+k+1)
-                    gamsum += sp.gammaln(l+3)
-                    gamsum -= sp.gammaln(m2k+1)
-                    slk = (-1)**(k+m)*H**(l-m2k+1)/(2**(m2k-1))
-                    slk *= R**(m2k+1)/np.exp(gamsum)
-                    qlm[l, L+m] += slk*k*np.sinc((m+1)*phih/np.pi)
-                    qlm[l, L+m] += slk*(k+m)*np.sinc((m-1)*phih/np.pi)
-                # Multiply by factor dependent only on (l,m)
-                qlm[l, L+m] *= fac2
+            for k in range((l-m)//2+1):
+                m2k = 2*k+m
+                gamsum = sp.gammaln(k+1) + sp.gammaln(m+k+1)
+                gamsum += sp.gammaln(l+3)
+                gamsum -= sp.gammaln(m2k+1)
+                slk = (-1)**(k+m)*H**(l-m2k+1)/(2**(m2k-1))
+                slk *= R**(m2k+1)/np.exp(gamsum)
+                qlm[l, L+m] += slk*k*np.sinc((m+1)*phih/np.pi)
+                qlm[l, L+m] += slk*(k+m)*np.sinc((m-1)*phih/np.pi)
+            # Multiply by factor dependent only on (l,m)
+            qlm[l, L+m] *= fac2
     # Moments always satisfy q(l, -m) = (-1)^m q(l, m)*
     ms = np.arange(-L, L+1)
     mfac = (-1)**(np.abs(ms))
@@ -1072,19 +1070,17 @@ def cone_y(L, My, H, R, phic, phih):
         for m in range(1, l+1):
             fac2 = fac*np.sqrt(np.exp(sp.gammaln(l+m+1)+sp.gammaln(l-m+1)))
             fac2 *= 1j*np.exp(-1j*m*phic)
-            # Make sure (l-m) even
-            if ((l-m) % 2 == 0):
-                for k in range((l-m)//2+1):
-                    m2k = 2*k+m
-                    gamsum = sp.gammaln(k+1) + sp.gammaln(m+k+1)
-                    gamsum += sp.gammaln(l+3)
-                    gamsum -= sp.gammaln(m2k+1)
-                    slk = (-1)**(k+m)*H**(l-m2k+1)/(2**(m2k-1))
-                    slk *= R**(m2k+1)/np.exp(gamsum)
-                    qlm[l, L+m] += slk*(-k)*np.sinc((m+1)*phih/np.pi)
-                    qlm[l, L+m] += slk*(k+m)*np.sinc((m-1)*phih/np.pi)
-                # Multiply by factor dependent only on (l,m)
-                qlm[l, L+m] *= fac2
+            for k in range((l-m)//2+1):
+                m2k = 2*k+m
+                gamsum = sp.gammaln(k+1) + sp.gammaln(m+k+1)
+                gamsum += sp.gammaln(l+3)
+                gamsum -= sp.gammaln(m2k+1)
+                slk = (-1)**(k+m)*H**(l-m2k+1)/(2**(m2k-1))
+                slk *= R**(m2k+1)/np.exp(gamsum)
+                qlm[l, L+m] += slk*(k)*np.sinc((m+1)*phih/np.pi)
+                qlm[l, L+m] -= slk*(k+m)*np.sinc((m-1)*phih/np.pi)
+            # Multiply by factor dependent only on (l,m)
+            qlm[l, L+m] *= fac2
     # Moments always satisfy q(l, -m) = (-1)^m q(l, m)*
     ms = np.arange(-L, L+1)
     mfac = (-1)**(np.abs(ms))
