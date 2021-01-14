@@ -316,7 +316,7 @@ def rect_prism_y(L, My, H, a, b, phic):
                     pfac = (-1)**p*sp.comb(m+k, p)
                     for j in range(k+1):
                         jp = j+p
-                        # j+p even
+                        # j+p odd
                         if (jp % 2) == 1:
                             kfac = a**(m2k-jp+1)*b**(jp)
                             ksum += 1j**jp*sp.comb(k, j)*kfac/(m2k-jp+1)
@@ -364,24 +364,23 @@ def tri_prism_z(L, Mz, H, d, y1, y2):
     # l-m odd
     for l in range(1, L+1):
         fac = factor*np.sqrt(2*l+1)
-        if (l % 2 == 0):
-            m0 = 1
-        else:
-            m0 = 0
+        # If l even then m odd and vice versa
+        m0 = (l + 1) % 2
         for m in range(m0, l+1, 2):
             fac2 = fac*np.sqrt(np.exp(sp.gammaln(l+m+1)+sp.gammaln(l-m+1)))
             for k in range((l-m)//2+1):
+                m2k = m + 2*k
                 gamsum = sp.gammaln(k+1) + sp.gammaln(m+k+1)
-                gamsum += sp.gammaln(l-m-2*k+1)
-                slk = (-1)**(m+k)*H**(l-2*k-m)/2**(l-1)
+                gamsum += sp.gammaln(l-m2k+1)
+                slk = (-1)**(m+k)*H**(l-m2k)/2**(l-1)
                 psum = 0
                 for p in range(m+k+1):
                     ksum = 0
                     pfac = (-1)**p*sp.comb(m+k, p)
                     for j in range(k+1):
                         jp = j+p
-                        kfac = d**(2*k+m-jp+1)*(y2**(jp+1)-y1**(jp+1))
-                        ksum += 1j**(jp)*sp.comb(k, j)*kfac/((m+2*k+2)*(jp+1))
+                        kfac = d**(m2k-jp+1)*(y2**(jp+1)-y1**(jp+1))
+                        ksum += 1j**(jp)*sp.comb(k, j)*kfac/((m2k+2)*(jp+1))
                     psum += pfac*ksum
                 slk *= psum/np.exp(gamsum)
                 qlm[l, L+m] += slk
@@ -426,25 +425,23 @@ def tri_prism_x(L, Mx, H, d, y1, y2):
     # l-m even
     for l in range(1, L+1):
         fac = factor*np.sqrt(2*l+1)
-        if (l % 2 == 0):
-            m0 = 0
-        else:
-            m0 = 1
+        # If l even then m even and similarly, l odd -> m odd
+        m0 = l % 2
         for m in range(m0, l+1, 2):
             fac2 = fac*np.sqrt(np.exp(sp.gammaln(l+m+1)+sp.gammaln(l-m+1)))
             for k in range((l-m)//2+1):
+                m2k = m + 2*k
                 gamsum = sp.gammaln(k+1) + sp.gammaln(m+k+1)
-                gamsum += sp.gammaln(l-m-2*k+2)
-                slk = (-1)**(m+k)*H**(l-2*k-m+1)/2**(l)
+                gamsum += sp.gammaln(l-m2k+2)
+                slk = (-1)**(m+k)*H**(l-m2k+1)/2**(l)
                 psum = 0
                 for p in range(m+k+1):
                     ksum = 0
                     pfac = (-1)**p*sp.comb(m+k, p)
                     for j in range(k+1):
                         jp = j+p
-                        kfac = d**(2*k+m-jp)*(y2**(jp+1)-y1**(jp+1))
-                        kfac *= 2*k+m-jp
-                        ksum += 1j**(jp)*sp.comb(k, j)*kfac/((m+2*k+1)*(jp+1))
+                        kfac = (m2k-jp)*d**(m2k-jp)*(y2**(jp+1)-y1**(jp+1))
+                        ksum += 1j**(jp)*sp.comb(k, j)*kfac/((m2k+1)*(jp+1))
                     psum += pfac*ksum
                 slk *= psum/np.exp(gamsum)
                 qlm[l, L+m] += slk
@@ -489,24 +486,23 @@ def tri_prism_y(L, My, H, d, y1, y2):
     # l-m even
     for l in range(1, L+1):
         fac = factor*np.sqrt(2*l+1)
-        if (l % 2 == 0):
-            m0 = 0
-        else:
-            m0 = 1
+        # If l even then m even and similarly, l odd -> m odd
+        m0 = l % 2
         for m in range(m0, l+1, 2):
             fac2 = fac*np.sqrt(np.exp(sp.gammaln(l+m+1)+sp.gammaln(l-m+1)))
             for k in range((l-m)//2+1):
+                m2k = m + 2*k
                 gamsum = sp.gammaln(k+1) + sp.gammaln(m+k+1)
-                gamsum += sp.gammaln(l-m-2*k+2)
-                slk = (-1)**(m+k)*H**(l-2*k-m+1)/2**(l)
+                gamsum += sp.gammaln(l-m2k+2)
+                slk = (-1)**(m+k)*H**(l-m2k+1)/2**(l)
                 psum = 0
                 for p in range(m+k+1):
                     ksum = 0
                     pfac = (-1)**p*sp.comb(m+k, p)
                     for j in range(k+1):
                         jp = j+p
-                        kfac = d**(2*k+m-jp+1)*(y2**jp-y1**jp)
-                        ksum += 1j**(jp)*sp.comb(k, j)*kfac/(2*k+m+1)
+                        kfac = d**(m2k-jp+1)*(y2**jp-y1**jp)
+                        ksum += 1j**(jp)*sp.comb(k, j)*kfac/(m2k+1)
                     psum += pfac*ksum
                 slk *= psum/np.exp(gamsum)
                 qlm[l, L+m] += slk

@@ -484,39 +484,37 @@ def test_tri():
     y2x = 2.5
     dx = 1
     L = 10
-    tri0 = mqlm.tri_prism_x(L, 1, H, dx, y1x, y2x)
+    tri1 = mqlm.tri_prism_x(L, 1, H, dx, y1x, y2x)
     tri2 = mqlm.tri_prism_y(L, 1, H, dy, y1y, y2y)
     # Create point-dipole versions
-    N = 20
-    tri0b = mshp.tri_prism(1, dx, y1x, y2x, H, 1, 1, 0, 0, N, N, N)
+    N = 40
+    tri1b = mshp.tri_prism(1, dx, y1x, y2x, H, 1, 1, 0, 0, N, N, N)
     tri2b = mshp.tri_prism(1, dy, y1y, y2y, H, 1, 0, 1, 0, N, N, N)
-    tqlmx = mglb.dmoments(L, tri0b)
+    tqlmx = mglb.dmoments(L, tri1b)
     tqlmy = mglb.dmoments(L, tri2b)
-    idsx = np.nonzero(tri0)
-    assert (np.abs((tri0[idsx] - tqlmx[idsx])/tri0[idsx]) < 1e-1)[:15].all()
-    idsy = np.nonzero(tri2)
-    assert (np.abs((tri2[idsy] - tqlmy[idsy])/tri2[idsy]) < 1e-2)[:32].all()
+    assert (np.abs(tri1 - tqlmx) < 0.2)[:4].all()
+    assert (np.abs(tri2 - tqlmy) < 0.2)[:4].all()
     tri0 = mqlm.tri_prism_z(L, 1, H, dx, y1x, y2x)
     tri0b = mshp.tri_prism(1, dx, y1x, y2x, H, 1, 0, 0, 1, N, N, N)
     tqlmz = mglb.dmoments(L, tri0b)
-    idsz = np.nonzero(tri0)
-    assert (np.abs((tri0[idsz] - tqlmz[idsz])/tri0[idsz]) < 0.25)[:30].all()
+    assert (np.abs(tri0 - tqlmz) < 0.25)[:4].all()
+
 
 def test_ann():
     H = 3
     IR = 1.5
     OR = 2
     L = 10
-    N = 20
+    N = 40
     beta = np.pi
     annx = mqlm.annulus_x(L, 1, H, IR, OR, 0, np.pi)
     anny = mqlm.annulus_y(L, 1, H, IR, OR, 0, np.pi)
-    annx2 = rot.rotate_qlm(anny, 0, -np.pi/2, 0)
-    assert (np.abs(annx - annx2) < 3e3*np.finfo(float).eps).all()
+    annx2 = rot.rotate_qlm(anny, 0, 0, -np.pi/2)
+    assert (np.abs(annx - annx2) < 3e4*np.finfo(float).eps).all()
     annz = mqlm.annulus_z(L, 1, H, IR, OR, 0, beta)
     sannz = mshp.annulus(1, IR, OR, H, 1, 0, 0, 1, N, N)
     mannz = mglb.dmoments(L, sannz)
-    assert (np.abs(annz - mannz) < 0.1)[:3].all()
+    assert (np.abs(annz - mannz) < 0.2)[:3].all()
     annr = mqlm.annulus_r(L, 1, H, IR, OR, 0, beta)
     sannr = mshp.wedge_rho(1, IR, OR, H, beta, 1, N, N)
     mannr = mglb.dmoments(L, sannr)
@@ -547,7 +545,9 @@ def test_cone():
     conp = mqlm.cone_p(L, 1, H, R, 0, beta)
     sconp = mshp.cone_phi(1, R, H, beta, 1, N, N)
     mconp = mglb.dmoments(L, sconp)
+    assert (np.abs(conp - mconp) < 0.2)[:3].all()
     beta = np.pi/6
     conp = mqlm.cone_p(L, 1, H, R, 0, beta)
     sconp = mshp.cone_phi(1, R, H, beta, 1, N, N)
     mconp = mglb.dmoments(L, sconp)
+    assert (np.abs(conp - mconp) < 0.2)[:3].all()
