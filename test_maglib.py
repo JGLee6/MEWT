@@ -507,10 +507,16 @@ def test_ann():
     L = 10
     N = 40
     beta = np.pi
-    annx = mqlm.annulus_x(L, 1, H, IR, OR, 0, np.pi)
-    anny = mqlm.annulus_y(L, 1, H, IR, OR, 0, np.pi)
+    annx = mqlm.annulus_x(L, 1, H, IR, OR, 0, beta)
+    anny = mqlm.annulus_y(L, 1, H, IR, OR, 0, beta)
     annx2 = rot.rotate_qlm(anny, 0, 0, -np.pi/2)
     assert (np.abs(annx - annx2) < 3e4*np.finfo(float).eps).all()
+    sannx = mshp.wedge(1, IR, OR, H, beta, 1, 1, 0, 0, N, N)
+    mannx = mglb.dmoments(L, sannx)
+    assert (np.abs(annx - mannx) < 0.1)[:3].all()
+    sanny = mshp.wedge(1, IR, OR, H, beta, 1, 0, 1, 0, N, N)
+    manny = mglb.dmoments(L, sanny)
+    assert (np.abs(anny - manny) < 0.1)[:3].all()
     annz = mqlm.annulus_z(L, 1, H, IR, OR, 0, beta)
     sannz = mshp.annulus(1, IR, OR, H, 1, 0, 0, 1, N, N)
     mannz = mglb.dmoments(L, sannz)
@@ -519,6 +525,41 @@ def test_ann():
     sannr = mshp.wedge_rho(1, IR, OR, H, beta, 1, N, N)
     mannr = mglb.dmoments(L, sannr)
     assert (np.abs(annr - mannr) < 0.1)[:3].all()
+    annp = mqlm.annulus_p(L, 1, H, IR, OR, 0, beta)
+    sannp = mshp.wedge_phi(1, IR, OR, H, beta, 1, N, N)
+    mannp = mglb.dmoments(L, sannp)
+    assert (np.abs(annp - mannp) < 0.1)[:3].all()
+
+
+def test_ann2():
+    H = 3
+    IR = 1.5
+    OR = 2
+    L = 10
+    N = 40
+    beta = np.pi/6
+    annx = mqlm.annulus_x(L, 1, H, IR, OR, 0, beta)
+    anny = mqlm.annulus_y(L, 1, H, IR, OR, 0, beta)
+    #annx2 = rot.rotate_qlm(anny, 0, 0, -np.pi/2)
+    #assert (np.abs(annx - annx2) < 3e4*np.finfo(float).eps).all()
+    sannx = mshp.wedge(1, IR, OR, H, beta, 1, 1, 0, 0, N, N)
+    mannx = mglb.dmoments(L, sannx)
+    assert (np.abs(annx - mannx) < 0.1)[:3].all()
+    sanny = mshp.wedge(1, IR, OR, H, beta, 1, 0, 1, 0, N, N)
+    manny = mglb.dmoments(L, sanny)
+    assert (np.abs(anny - manny) < 0.1)[:3].all()
+    annz = mqlm.annulus_z(L, 1, H, IR, OR, 0, beta)
+    sannz = mshp.wedge(1, IR, OR, H, beta, 1, 0, 0, 1, N, N)
+    mannz = mglb.dmoments(L, sannz)
+    assert (np.abs(annz - mannz) < 0.2)[:3].all()
+    annr = mqlm.annulus_r(L, 1, H, IR, OR, 0, beta)
+    sannr = mshp.wedge_rho(1, IR, OR, H, beta, 1, N, N)
+    mannr = mglb.dmoments(L, sannr)
+    assert (np.abs(annr - mannr) < 0.1)[:3].all()
+    annp = mqlm.annulus_p(L, 1, H, IR, OR, 0, beta)
+    sannp = mshp.wedge_phi(1, IR, OR, H, beta, 1, N, N)
+    mannp = mglb.dmoments(L, sannp)
+    assert (np.abs(annp - mannp) < 0.1)[:3].all()
 
 
 def test_cone():
@@ -534,6 +575,9 @@ def test_cone():
     sconx = mshp.cone(1, R, H, beta, 1, 1, 0, 0, N, N)
     mconx = mglb.dmoments(L, sconx)
     assert (np.abs(conx - mconx) < 0.1)[:3].all()
+    scony = mshp.cone(1, R, H, beta, 1, 0, 1, 0, N, N)
+    mcony = mglb.dmoments(L, scony)
+    assert (np.abs(cony - mcony) < 0.1)[:3].all()
     conz = mqlm.cone_z(L, 1, H, R, 0, beta)
     sconz = mshp.cone(1, R, H, beta, 1, 0, 0, 1, N, N)
     mconz = mglb.dmoments(L, sconz)

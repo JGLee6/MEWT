@@ -790,9 +790,9 @@ def annulus_x(L, Mx, H, Ri, Ro, phic, phih):
     if (H == 0) or (Ro < Ri) or (phih == 0) or (phih > np.pi):
         return qlm
     factor *= phih
-    for l in range(L+1):
+    for l in range(1, L+1):
         fac = factor*np.sqrt(2*l+1)
-        for m in range(1, l+1):
+        for m in range(l+1):
             fac2 = fac*np.sqrt(np.exp(sp.gammaln(l+m+1)+sp.gammaln(l-m+1)))
             fac2 *= np.exp(-1j*m*phic)
             # Make sure (l-m) even
@@ -849,9 +849,9 @@ def annulus_y(L, My, H, Ri, Ro, phic, phih):
     if (H == 0) or (Ro < Ri) or (phih == 0) or (phih > np.pi):
         return qlm
     factor *= phih
-    for l in range(L+1):
+    for l in range(1, L+1):
         fac = factor*np.sqrt(2*l+1)
-        for m in range(1, l+1):
+        for m in range(l+1):
             fac2 = fac*np.sqrt(np.exp(sp.gammaln(l+m+1)+sp.gammaln(l-m+1)))
             fac2 *= 1j*np.exp(-1j*m*phic)
             # Make sure (l-m) even
@@ -1071,9 +1071,9 @@ def cone_x(L, Mx, H, R, phic, phih):
     if (H == 0) or (R <= 0) or (phih == 0) or (phih > np.pi):
         return qlm
     factor *= phih
-    for l in range(L+1):
+    for l in range(1, L+1):
         fac = factor*np.sqrt(2*l+1)
-        for m in range(1, l+1):
+        for m in range(l+1):
             fac2 = fac*np.sqrt(np.exp(sp.gammaln(l+m+1)+sp.gammaln(l-m+1)))
             fac2 *= np.exp(-1j*m*phic)
             for k in range((l-m)//2+1):
@@ -1127,9 +1127,9 @@ def cone_y(L, My, H, R, phic, phih):
     if (H == 0) or (R <= 0) or (phih == 0) or (phih > np.pi):
         return qlm
     factor *= phih
-    for l in range(L+1):
+    for l in range(1, L+1):
         fac = factor*np.sqrt(2*l+1)
-        for m in range(1, l+1):
+        for m in range(l+1):
             fac2 = fac*np.sqrt(np.exp(sp.gammaln(l+m+1)+sp.gammaln(l-m+1)))
             fac2 *= 1j*np.exp(-1j*m*phic)
             for k in range((l-m)//2+1):
