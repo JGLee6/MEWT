@@ -7,3 +7,31 @@ We present MEWT: the Magnetic E&ouml;t-Wash Toolkit. This toolkit uses two metho
 
 ## Point Dipoles
 A point dipole array is an Nx8 array of points with [m, x, y, z, s, sx, sy, sz] specifying the mass and position as well as the dipole moment and orientation.
+
+### To Do
+- [X] Test Rect
+	- [X] x
+	- [X] y
+	- [X] z
+- [X] Test Tri
+	- [X] x
+	- [X] y
+	- [X] z
+- [X] Test Cyl
+	- [X] x
+	- [X] y
+	- [X] z
+	- [X] rho
+	- [X] rho, beta != pi
+	- [X] phi
+	- [X] phi, beta != pi
+- [X] Test Cone
+	- [X] x
+	- [X] y
+	- [X] z
+	- [X] rho
+	- [X] rho, beta != pi
+	- [X] phi
+	- [ ] phi, beta != pi, -> minus sign
+- [ ] fix y-axis error in moments from point dipole
+- [X] point mags
