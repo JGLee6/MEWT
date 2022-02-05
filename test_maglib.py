@@ -10,7 +10,6 @@ import maglibShapes as mshp
 import newt.multipoleLib as mplb
 import newt.translations as trs
 import newt.rotations as rot
-import mqlm
 
 
 def test_dmomz():
@@ -99,7 +98,12 @@ def test_dmomy():
     assert (np.abs(dmom - predz) < 200*np.finfo(float).eps).all()
 
 
-def test_rot():
+def test_rot_a():
+    """
+    GIVEN unit-dipole translated unit distance along axis, dipole along axis
+    WHEN rotated to other axis
+    THEN moment calculations match to l=10
+    """
     lmax = 10
     # z-dip at origin -> mom -> [0, 0, 1]
     magz = np.array([[1, 0, 0, 0, 1, 0, 0, 1]])
@@ -117,10 +121,89 @@ def test_rot():
     magtx = np.array([[1, 1, 0, 0, 1, 1, 0, 0]])
     dmomtx = mglb.dmoments(lmax, magtx)
     assert (np.abs(dmomtx - dmomxt) < 2e2*np.finfo(float).eps).all()
+    # y-dip at origin -> mom -> [0, 1, 0]
+    magy = np.array([[1, 0, 0, 0, 1, 0, 1, 0]])
+    dmomy = mglb.dmoments(lmax, magy)
+    dmomyt = trs.translate_qlm(dmomy, [0, 1, 0])
+    # y-dip at [0, 1, 0] -> mom
+    magty = np.array([[1, 0, 1, 0, 1, 0, 1, 0]])
+    dmomty = mglb.dmoments(lmax, magty)
+    assert (np.abs(dmomty - dmomyt) < 2e2*np.finfo(float).eps).all()
+    # Check if rotations to others match
     # z-dip at [0, 0, 1] -> rotate z to x-axis
     dmomxrt = rot.rotate_qlm(dmomzt, 0, np.pi/2, 0)
     assert (np.abs(dmomxrt - dmomxt) < 2e2*np.finfo(float).eps).all()
-    # np.where(np.abs(dmomxrt - dmomxt) > 2e2*np.finfo(float).eps)
+    # z-dip at [0, 0, 1] -> rotate z to y-axis
+    dmomyrt = rot.rotate_qlm(dmomzt, np.pi/2, np.pi/2, 0)
+    assert (np.abs(dmomyrt - dmomyt) < 2e2*np.finfo(float).eps).all()
+    # x-dip at [1, 0, 0] -> rotate x to y-axis
+    dmomxyrt = rot.rotate_qlm(dmomxt, np.pi/2, 0, 0)
+    assert (np.abs(dmomxyrt - dmomyt) < 2e2*np.finfo(float).eps).all()
+    # x-dip at [1, 0, 0] -> rotate x to z-axis
+    dmomxzrt = rot.rotate_qlm(dmomxt, 0, -np.pi/2, 0)
+    assert (np.abs(dmomxzrt - dmomzt) < 2e2*np.finfo(float).eps).all()
+    # y-dip at [0, 1, 0] -> rotate y to x-axis
+    dmomyxrt = rot.rotate_qlm(dmomyt, -np.pi/2, 0, 0)
+    assert (np.abs(dmomyxrt - dmomxt) < 2e2*np.finfo(float).eps).all()
+    # y-dip at [0, 1, 0] -> rotate y to z-axis
+    dmomyzrt = rot.rotate_qlm(dmomyt, np.pi/2, np.pi/2, np.pi/2)
+    assert (np.abs(dmomyzrt - dmomzt) < 2e2*np.finfo(float).eps).all()
+
+
+def test_rot_b():
+    """
+    GIVEN unit-dipole translated unit distance along axis, dipole perp to axis
+    WHEN rotated to other axis
+    THEN moment calculations match to l=10
+
+    Moments are named identical to test_rot_a with values swapped and
+    appropriate rotations substituted.
+    """
+    lmax = 10
+    # x-dip at origin -> mom -> [0, 0, 1]
+    magz = np.array([[1, 0, 0, 0, 1, 1, 0, 0]])
+    dmomz = mglb.dmoments(lmax, magz)
+    dmomzt = trs.translate_qlm(dmomz, [0, 0, 1])
+    # x-dip at [0, 0, 1] -> mom
+    magtz = np.array([[1, 0, 0, 1, 1, 1, 0, 0]])
+    dmomtz = mglb.dmoments(lmax, magtz)
+    assert (np.abs(dmomtz - dmomzt) < 2e2*np.finfo(float).eps).all()
+    # y-dip at origin -> mom -> [1, 0, 0]
+    magx = np.array([[1, 0, 0, 0, 1, 0, 1, 0]])
+    dmomx = mglb.dmoments(lmax, magx)
+    dmomxt = trs.translate_qlm(dmomx, [1, 0, 0])
+    # y-dip at [1, 0, 0] -> mom
+    magtx = np.array([[1, 1, 0, 0, 1, 0, 1, 0]])
+    dmomtx = mglb.dmoments(lmax, magtx)
+    assert (np.abs(dmomtx - dmomxt) < 2e2*np.finfo(float).eps).all()
+    # z-dip at origin -> mom -> [0, 1, 0]
+    magy = np.array([[1, 0, 0, 0, 1, 0, 0, 1]])
+    dmomy = mglb.dmoments(lmax, magy)
+    dmomyt = trs.translate_qlm(dmomy, [0, 1, 0])
+    # z-dip at [0, 1, 0] -> mom
+    magty = np.array([[1, 0, 1, 0, 1, 0, 0, 1]])
+    dmomty = mglb.dmoments(lmax, magty)
+    assert (np.abs(dmomty - dmomyt) < 2e2*np.finfo(float).eps).all()
+    # Check if rotations to others match
+    # x-dip at [0, 0, 1] -> rotate z to x-axis
+    dmomxrt = rot.rotate_qlm(dmomzt, 0, np.pi/2, np.pi/2)
+    assert (np.abs(dmomxrt - dmomxt) < 2e2*np.finfo(float).eps).all()
+    # x-dip at [0, 0, 1] -> rotate z to y-axis
+    dmomyrt = rot.rotate_qlm(dmomzt, np.pi/2, np.pi/2, np.pi)
+    assert (np.abs(dmomyrt - dmomyt) < 2e2*np.finfo(float).eps).all()
+    # y-dip at [1, 0, 0] -> rotate x to y-axis
+    dmomxyrt = rot.rotate_qlm(dmomxt, 0, np.pi/2, np.pi/2)
+    assert (np.abs(dmomxyrt - dmomyt) < 2e2*np.finfo(float).eps).all()
+    # y-dip at [1, 0, 0] -> rotate x to z-axis
+    dmomxzrt = rot.rotate_qlm(dmomxt, -np.pi/2, -np.pi/2, 0)
+    # slightly higher error here
+    assert (np.abs(dmomxzrt - dmomzt) < 3e2*np.finfo(float).eps).all()
+    # z-dip at [0, 1, 0] -> rotate y to x-axis
+    dmomyxrt = rot.rotate_qlm(dmomyt, -np.pi/2, -np.pi/2, 0)
+    assert (np.abs(dmomyxrt - dmomxt) < 2e2*np.finfo(float).eps).all()
+    # z-dip at [0, 1, 0] -> rotate y to z-axis
+    dmomyzrt = rot.rotate_qlm(dmomyt, 0, np.pi/2, np.pi/2)
+    assert (np.abs(dmomyzrt - dmomzt) < 2e2*np.finfo(float).eps).all()
 
 
 def test_ft_a():
@@ -144,7 +227,7 @@ def test_ft_a():
     tqlm, tc, ts = mplb.torque_lm(lmax, dmom, Dmom)
     torque = np.real(np.sum(tqlm))*mglb.magC/mplb.BIG_G
     # assert (np.abs(fpred - force) < 10*np.finfo(float).eps).all()
-    # assert (np.abs(tpred - torque) < 10*np.finfo(float).eps).all()
+    # assert (np.abs(tpred[0] - torque) < 10*np.finfo(float).eps).all()
 
 
 def test_ft_b():
@@ -196,22 +279,207 @@ def test_ft_c():
     # assert (np.abs(tpred - torque) < 10*np.finfo(float).eps).all()
 
 
-def test_Dmombs():
+def test_Dmombz():
     """
-    Creates a pair of point dipole at [1, 0, 0] and [-1, 0, 0] with vertically
-    oriented moments. Then compares the outer moments of the vertically
-    translated ([0, 0, 5]) points computed in two ways. The first method is
-    through translating the points and computing the outer moments of point
-    dipoles. The second method, computes the inner moments of point dipoles and
-    translates to outer moments using a translation method of inner-outer
-    moments.
+    Compares outer moment of z-dipole at the [0, 0, 10] + translate [0, 0, .5]
+    to outer moment of z-dipole at [0, 0, 10.5]. And similar for translations
+    in x, y.
+    """
+    mag1 = np.array([[1, 0, 0, 10, 1, 0, 0, 1]])
+    lmax = 10
+    # Test z translation
+    dz = [0, 0, .5]
+    # outer moments -> translate dz
+    DmomA = mglb.Dmomentsb(lmax, mag1)
+    DmomA = trs.translate_Qlmb(DmomA, dz)
+    # translate dz -> outer moments
+    mag1z = mglb.translate_dipole_array(mag1, dz)
+    DmomB = mglb.Dmomentsb(lmax, mag1z)
+    assert (np.abs(DmomA - DmomB) < 1e6*np.finfo(float).eps).all()
+    # Test x translation
+    dx = [.5, 0, 0]
+    # outer moments -> translate dx
+    DmomA = mglb.Dmomentsb(lmax, mag1)
+    DmomA = trs.translate_Qlmb(DmomA, dx)
+    # translate dx -> outer moments
+    mag1z = mglb.translate_dipole_array(mag1, dx)
+    DmomB = mglb.Dmomentsb(lmax, mag1z)
+    assert (np.abs(DmomA - DmomB) < 1e6*np.finfo(float).eps).all()
+    # Test y translation
+    dy = [0, .5, 0]
+    # outer moments -> translate dy
+    DmomA = mglb.Dmomentsb(lmax, mag1)
+    DmomA = trs.translate_Qlmb(DmomA, dy)
+    # translate dy -> outer moments
+    mag1z = mglb.translate_dipole_array(mag1, dy)
+    DmomB = mglb.Dmomentsb(lmax, mag1z)
+    assert (np.abs(DmomA - DmomB) < 1e6*np.finfo(float).eps).all()
+
+
+def test_Dmombx():
+    """
+    Compares outer moment of x-dipole at the [10, 0, 0] + translate [.5, 0, 0]
+    to outer moment of x-dipole at [10.5, 0, 0]. And similar for translations
+    in z, y.
+    """
+    mag1 = np.array([[1, 10, 0, 0, 1, 1, 0, 0]])
+    lmax = 10
+    # Test z translation
+    dz = [0, 0, .5]
+    # outer moments -> translate dz
+    DmomA = mglb.Dmomentsb(lmax, mag1)
+    DmomA = trs.translate_Qlmb(DmomA, dz)
+    # translate dz -> outer moments
+    mag1z = mglb.translate_dipole_array(mag1, dz)
+    DmomB = mglb.Dmomentsb(lmax, mag1z)
+    assert (np.abs(DmomA - DmomB) < 1e6*np.finfo(float).eps).all()
+    # Test x translation
+    dx = [.5, 0, 0]
+    # outer moments -> translate dx
+    DmomA = mglb.Dmomentsb(lmax, mag1)
+    DmomA = trs.translate_Qlmb(DmomA, dx)
+    # translate dx -> outer moments
+    mag1z = mglb.translate_dipole_array(mag1, dx)
+    DmomB = mglb.Dmomentsb(lmax, mag1z)
+    assert (np.abs(DmomA - DmomB) < 1e6*np.finfo(float).eps).all()
+    # Test y translation
+    dy = [0, .5, 0]
+    # outer moments -> translate dy
+    DmomA = mglb.Dmomentsb(lmax, mag1)
+    DmomA = trs.translate_Qlmb(DmomA, dy)
+    # translate dy -> outer moments
+    mag1z = mglb.translate_dipole_array(mag1, dy)
+    DmomB = mglb.Dmomentsb(lmax, mag1z)
+    assert (np.abs(DmomA - DmomB) < 1e6*np.finfo(float).eps).all()
+
+
+def test_Dmomby():
+    """
+    Compares outer moment of y-dipole at the [0, 10, 0] + translate [0, .5, 0]
+    to outer moment of y-dipole at [0, 10.5, 0]. And similar for translations
+    in z, x.
+    """
+    mag1 = np.array([[1, 0, 10, 0, 1, 0, 1, 0]])
+    lmax = 10
+    # Test z translation
+    dz = [0, 0, .5]
+    # outer moments -> translate dz
+    DmomA = mglb.Dmomentsb(lmax, mag1)
+    DmomA = trs.translate_Qlmb(DmomA, dz)
+    # translate dz -> outer moments
+    mag1z = mglb.translate_dipole_array(mag1, dz)
+    DmomB = mglb.Dmomentsb(lmax, mag1z)
+    assert (np.abs(DmomA - DmomB) < 1e6*np.finfo(float).eps).all()
+    # Test x translation
+    dx = [.5, 0, 0]
+    # outer moments -> translate dx
+    DmomA = mglb.Dmomentsb(lmax, mag1)
+    DmomA = trs.translate_Qlmb(DmomA, dx)
+    # translate dx -> outer moments
+    mag1z = mglb.translate_dipole_array(mag1, dx)
+    DmomB = mglb.Dmomentsb(lmax, mag1z)
+    assert (np.abs(DmomA - DmomB) < 1e6*np.finfo(float).eps).all()
+    # Test y translation
+    dy = [0, .5, 0]
+    # outer moments -> translate dy
+    DmomA = mglb.Dmomentsb(lmax, mag1)
+    DmomA = trs.translate_Qlmb(DmomA, dy)
+    # translate dy -> outer moments
+    mag1z = mglb.translate_dipole_array(mag1, dy)
+    DmomB = mglb.Dmomentsb(lmax, mag1z)
+    assert (np.abs(DmomA - DmomB) < 1e6*np.finfo(float).eps).all()
+
+
+def test_Dmombs_dz():
+    """
+    Creates a pair of point dipole at [1, 0, 0] and [-1, 0, 0]. Then compares
+    the outer moments of the vertically translated ([0, 0, 5]) points computed
+    in two ways. The first method is through translating the points and
+    computing the outer moments of point dipoles. The second method, computes
+    the inner moments of point dipoles and translates to outer moments using a
+    translation method of inner->outer moments.
     """
     mag2 = np.array([[1, 1, 0, 0, 1, 0, 0, 1], [1, -1, 0, 0, 1, 0, 0, 1]])
     lmax = 20
+    dz = [0, 0, 5]
     dmom = mglb.dmoments(lmax, mag2)
-    mag3 = mglb.translate_dipole_array(mag2, [0, 0, 5])
+    mag3 = mglb.translate_dipole_array(mag2, dz)
     DmomA = mglb.Dmomentsb(lmax, mag3)
-    DmomB = trs.translate_q2Q(dmom, [0, 0, 5])
+    DmomB = trs.translate_q2Q(dmom, dz)
+    assert (np.abs(DmomA - DmomB) < 5e6*np.finfo(float).eps).all()
+    mag2 = np.array([[1, 1, 0, 0, 1, 1, 0, 0], [1, -1, 0, 0, 1, -1, 0, 0]])
+    dmom = mglb.dmoments(lmax, mag2)
+    mag3 = mglb.translate_dipole_array(mag2, dz)
+    DmomA = mglb.Dmomentsb(lmax, mag3)
+    DmomB = trs.translate_q2Q(dmom, dz)
+    assert (np.abs(DmomA - DmomB) < 5e6*np.finfo(float).eps).all()
+    mag2 = np.array([[1, 1, 0, 0, 1, 0, 1, 0], [1, -1, 0, 0, 1, 0, 1, 0]])
+    dmom = mglb.dmoments(lmax, mag2)
+    mag3 = mglb.translate_dipole_array(mag2, dz)
+    DmomA = mglb.Dmomentsb(lmax, mag3)
+    DmomB = trs.translate_q2Q(dmom, dz)
+    assert (np.abs(DmomA - DmomB) < 5e6*np.finfo(float).eps).all()
+
+
+def test_Dmombs_dx():
+    """
+    Creates a pair of point dipole at [0, 0, 1] and [0, 0, -1]. Then compares
+    the outer moments of the vertically translated ([5, 0, 0]) points computed
+    in two ways. The first method is through translating the points and
+    computing the outer moments of point dipoles. The second method, computes
+    the inner moments of point dipoles and translates to outer moments using a
+    translation method of inner->outer moments.
+    """
+    mag2 = np.array([[1, 0, 0, 1, 1, 0, 0, 1], [1, 0, 0, -1, 1, 0, 0, 1]])
+    lmax = 20
+    dx = [5, 0, 0]
+    dmom = mglb.dmoments(lmax, mag2)
+    mag3 = mglb.translate_dipole_array(mag2, dx)
+    DmomA = mglb.Dmomentsb(lmax, mag3)
+    DmomB = trs.translate_q2Q(dmom, dx)
+    assert (np.abs(DmomA - DmomB) < 5e6*np.finfo(float).eps).all()
+    mag2 = np.array([[1, 0, 0, 1, 1, 1, 0, 0], [1, 0, 0, -1, 1, -1, 0, 0]])
+    dmom = mglb.dmoments(lmax, mag2)
+    mag3 = mglb.translate_dipole_array(mag2, dx)
+    DmomA = mglb.Dmomentsb(lmax, mag3)
+    DmomB = trs.translate_q2Q(dmom, dx)
+    assert (np.abs(DmomA - DmomB) < 5e6*np.finfo(float).eps).all()
+    mag2 = np.array([[1, 0, 0, 1, 1, 0, 1, 0], [1, 0, 0, -1, 1, 0, 1, 0]])
+    dmom = mglb.dmoments(lmax, mag2)
+    mag3 = mglb.translate_dipole_array(mag2, dx)
+    DmomA = mglb.Dmomentsb(lmax, mag3)
+    DmomB = trs.translate_q2Q(dmom, dx)
+    assert (np.abs(DmomA - DmomB) < 5e6*np.finfo(float).eps).all()
+
+
+def test_Dmombs_dy():
+    """
+    Creates a pair of point dipole at [0, 0, 1] and [0, 0, -1]. Then compares
+    the outer moments of the vertically translated ([0, 5, 0]) points computed
+    in two ways. The first method is through translating the points and
+    computing the outer moments of point dipoles. The second method, computes
+    the inner moments of point dipoles and translates to outer moments using a
+    translation method of inner->outer moments.
+    """
+    mag2 = np.array([[1, 0, 0, 1, 1, 0, 0, 1], [1, 0, 0, -1, 1, 0, 0, 1]])
+    lmax = 20
+    dx = [0, 5, 0]
+    dmom = mglb.dmoments(lmax, mag2)
+    mag3 = mglb.translate_dipole_array(mag2, dx)
+    DmomA = mglb.Dmomentsb(lmax, mag3)
+    DmomB = trs.translate_q2Q(dmom, dx)
+    assert (np.abs(DmomA - DmomB) < 5e6*np.finfo(float).eps).all()
+    mag2 = np.array([[1, 0, 0, 1, 1, 1, 0, 0], [1, 0, 0, -1, 1, -1, 0, 0]])
+    dmom = mglb.dmoments(lmax, mag2)
+    mag3 = mglb.translate_dipole_array(mag2, dx)
+    DmomA = mglb.Dmomentsb(lmax, mag3)
+    DmomB = trs.translate_q2Q(dmom, dx)
+    assert (np.abs(DmomA - DmomB) < 5e6*np.finfo(float).eps).all()
+    mag2 = np.array([[1, 0, 0, 1, 1, 0, 1, 0], [1, 0, 0, -1, 1, 0, 1, 0]])
+    dmom = mglb.dmoments(lmax, mag2)
+    mag3 = mglb.translate_dipole_array(mag2, dx)
+    DmomA = mglb.Dmomentsb(lmax, mag3)
+    DmomB = trs.translate_q2Q(dmom, dx)
     assert (np.abs(DmomA - DmomB) < 5e6*np.finfo(float).eps).all()
 
 
@@ -247,10 +515,12 @@ def energy_3om(theta, z):
     the energy
     """
     U = 0
+    z = z*np.ones(len(theta))
     for k in range(3):
         for m in range(3):
-            rvec = np.array([np.cos(2*np.pi*k/3)-np.cos(2*np.pi*m/3+theta),
-                             np.sin(2*np.pi*k/3)-np.sin(2*np.pi*m/3+theta), z])
+            x = np.cos(2*np.pi*k/3)-np.cos(2*np.pi*m/3+theta)
+            y = np.sin(2*np.pi*k/3)-np.sin(2*np.pi*m/3+theta)
+            rvec = np.stack([x, y, z])
             r = np.sqrt(np.sum(rvec**2))
             fackm = 3*rvec[0]**2/r**2 - 1
             U += fackm/r**3
@@ -407,191 +677,3 @@ src_mass = np.concatenate([scyl,
 dtp = mglb.dmoments(10, testpend)
 Dsm = mglb.Dmomentsb(10, src_mass)
 tlmb, tcb, tsb = mplb.torque_lm(10, dtp, Dsm)
-
-
-def test_rect():
-    """
-    Test z-oriented analytic magnetic multipole inner moments.
-    """
-    rqlm0 = mqlm.rect_prism_z(10, 1, 2, 3, 5, 0)
-    rqlm1 = mqlm.rect_prism_z2(10, 1, 2, 3, 5, 0)
-    rect2 = mshp.rectangle(1, 3, 5, 2, 1, 0, 0, 1, 10, 10, 10)
-    rqlm2 = mglb.dmoments(10, rect2)
-    tri0 = mqlm.tri_prism_z(10, 1, 2, 3/2, -2.5, 2.5)
-    tri2 = mqlm.tri_prism_z(10, 1, 2, 5/2, -1.5, 1.5)
-    tri2 = rot.rotate_qlm(tri2, 0, 0, np.pi/2)
-    tri1 = rot.rotate_qlm(tri0, 0, 0, np.pi)
-    tri3 = rot.rotate_qlm(tri2, 0, 0, np.pi)
-    rqlm3 = tri0 + tri1 + tri2 + tri3
-    assert (np.abs(rqlm0 - rqlm1) < 3e5*np.finfo(float).eps).all()
-    assert (np.abs(rqlm0 - rqlm2) < 3e5*np.finfo(float).eps)[:3].all()
-    assert (np.abs(rqlm0 - rqlm3) < 3e5*np.finfo(float).eps).all()
-
-
-def test_recx():
-    rqlm0 = mqlm.rect_prism_z(10, 1, 2, 3, 5, 0)
-    rqlmx = mqlm.rect_prism_x(10, 1, 3, 2, 5, 0)
-    rqlmx2 = mqlm.rect_prism_x2(10, 1, 3, 2, 5, 0)
-    # rotate z-oriented to x-oriented
-    rqlmx3 = rot.rotate_qlm(rqlm0, 0, np.pi/2, 0)
-    tri0 = mqlm.tri_prism_x(10, 1, 3, 2/2, -2.5, 2.5)
-    tri1 = mqlm.tri_prism_x(10, -1, 3, 2/2, -2.5, 2.5)
-    tri1 = rot.rotate_qlm(tri1, 0, 0, np.pi)
-    tri2 = mqlm.tri_prism_y(10, 1, 3, 5/2, -1, 1)
-    tri3 = mqlm.tri_prism_y(10, -1, 3, 5/2, -1, 1)
-    tri2 = rot.rotate_qlm(tri2, 0, 0, -np.pi/2)
-    tri3 = rot.rotate_qlm(tri3, 0, 0, np.pi/2)
-    rqlmx4 = tri0 + tri1 + tri2 + tri3
-    rect5 = mshp.rectangle(1, 2, 5, 3, 1, 1, 0, 0, 10, 10, 10)
-    rqlmx5 = mglb.dmoments(10, rect5)
-    rect6 = mshp.rectangle(1, 2, 5, 3, 1, 1, 0, 0, 20, 20, 20)
-    rqlmx6 = mglb.dmoments(10, rect6)
-    assert (np.abs(rqlmx2 - rqlmx3) < 3e5*np.finfo(float).eps).all()
-    assert (np.abs(rqlmx2 - rqlmx4) < 3e5*np.finfo(float).eps).all()
-    # PointDipole gets bad after l=2
-    assert (np.abs(rqlmx2 - rqlmx6) < 3e5*np.finfo(float).eps)[:3].all()
-
-
-def test_recy():
-    rqlm0 = mqlm.rect_prism_z(10, 1, 2, 3, 5, 0)
-    rqlmy = mqlm.rect_prism_y(10, 1, 5, 3, 2, 0)
-    rqlmy2 = mqlm.rect_prism_y2(10, 1, 5, 3, 2, 0)
-    # rotate z-oriented to x-oriented
-    rqlmy3 = rot.rotate_qlm(rqlm0, np.pi/2, np.pi/2, -np.pi/2)
-    tri0 = mqlm.tri_prism_y(10, 1, 5, 3/2, -1, 1)
-    tri1 = mqlm.tri_prism_y(10, -1, 5, 3/2, -1, 1)
-    tri1 = rot.rotate_qlm(tri1, 0, 0, np.pi)
-    tri2 = mqlm.tri_prism_x(10, 1, 5, 2/2, -1.5, 1.5)
-    tri3 = mqlm.tri_prism_x(10, -1, 5, 2/2, -1.5, 1.5)
-    tri2 = rot.rotate_qlm(tri2, 0, 0, np.pi/2)
-    tri3 = rot.rotate_qlm(tri3, 0, 0, -np.pi/2)
-    rqlmy4 = tri0 + tri1 + tri2 + tri3
-    rect5 = mshp.rectangle(1, 3, 2, 5, 1, 0, 1, 0, 10, 10, 10)
-    rqlmy5 = mglb.dmoments(10, rect5)
-    rect6 = mshp.rectangle(1, 3, 2, 5, 1, 0, 1, 0, 20, 20, 20)
-    rqlmy6 = mglb.dmoments(10, rect6)
-    assert (np.abs(rqlmy2 - rqlmy3) < 3e5*np.finfo(float).eps).all()
-    assert (np.abs(rqlmy4 - rqlmy3) < 3e5*np.finfo(float).eps).all()
-
-
-def test_tri():
-    # Make analytic versions
-    H = 3
-    dy = 5/2
-    y1y = -1
-    y2y = 1
-    y1x = -2.5
-    y2x = 2.5
-    dx = 1
-    L = 10
-    tri1 = mqlm.tri_prism_x(L, 1, H, dx, y1x, y2x)
-    tri2 = mqlm.tri_prism_y(L, 1, H, dy, y1y, y2y)
-    # Create point-dipole versions
-    N = 40
-    tri1b = mshp.tri_prism(1, dx, y1x, y2x, H, 1, 1, 0, 0, N, N, N)
-    tri2b = mshp.tri_prism(1, dy, y1y, y2y, H, 1, 0, 1, 0, N, N, N)
-    tqlmx = mglb.dmoments(L, tri1b)
-    tqlmy = mglb.dmoments(L, tri2b)
-    assert (np.abs(tri1 - tqlmx) < 0.2)[:4].all()
-    assert (np.abs(tri2 - tqlmy) < 0.2)[:4].all()
-    tri0 = mqlm.tri_prism_z(L, 1, H, dx, y1x, y2x)
-    tri0b = mshp.tri_prism(1, dx, y1x, y2x, H, 1, 0, 0, 1, N, N, N)
-    tqlmz = mglb.dmoments(L, tri0b)
-    assert (np.abs(tri0 - tqlmz) < 0.25)[:4].all()
-
-
-def test_ann():
-    H = 3
-    IR = 1.5
-    OR = 2
-    L = 10
-    N = 40
-    beta = np.pi
-    annx = mqlm.annulus_x(L, 1, H, IR, OR, 0, beta)
-    anny = mqlm.annulus_y(L, 1, H, IR, OR, 0, beta)
-    annx2 = rot.rotate_qlm(anny, 0, 0, -np.pi/2)
-    assert (np.abs(annx - annx2) < 3e4*np.finfo(float).eps).all()
-    sannx = mshp.wedge(1, IR, OR, H, beta, 1, 1, 0, 0, N, N)
-    mannx = mglb.dmoments(L, sannx)
-    assert (np.abs(annx - mannx) < 0.1)[:3].all()
-    sanny = mshp.wedge(1, IR, OR, H, beta, 1, 0, 1, 0, N, N)
-    manny = mglb.dmoments(L, sanny)
-    assert (np.abs(anny - manny) < 0.1)[:3].all()
-    annz = mqlm.annulus_z(L, 1, H, IR, OR, 0, beta)
-    sannz = mshp.annulus(1, IR, OR, H, 1, 0, 0, 1, N, N)
-    mannz = mglb.dmoments(L, sannz)
-    assert (np.abs(annz - mannz) < 0.2)[:3].all()
-    annr = mqlm.annulus_r(L, 1, H, IR, OR, 0, beta)
-    sannr = mshp.wedge_rho(1, IR, OR, H, beta, 1, N, N)
-    mannr = mglb.dmoments(L, sannr)
-    assert (np.abs(annr - mannr) < 0.1)[:3].all()
-    annp = mqlm.annulus_p(L, 1, H, IR, OR, 0, beta)
-    sannp = mshp.wedge_phi(1, IR, OR, H, beta, 1, N, N)
-    mannp = mglb.dmoments(L, sannp)
-    assert (np.abs(annp - mannp) < 0.1)[:3].all()
-
-
-def test_ann2():
-    H = 3
-    IR = 1.5
-    OR = 2
-    L = 10
-    N = 40
-    beta = np.pi/6
-    annx = mqlm.annulus_x(L, 1, H, IR, OR, 0, beta)
-    anny = mqlm.annulus_y(L, 1, H, IR, OR, 0, beta)
-    #annx2 = rot.rotate_qlm(anny, 0, 0, -np.pi/2)
-    #assert (np.abs(annx - annx2) < 3e4*np.finfo(float).eps).all()
-    sannx = mshp.wedge(1, IR, OR, H, beta, 1, 1, 0, 0, N, N)
-    mannx = mglb.dmoments(L, sannx)
-    assert (np.abs(annx - mannx) < 0.1)[:3].all()
-    sanny = mshp.wedge(1, IR, OR, H, beta, 1, 0, 1, 0, N, N)
-    manny = mglb.dmoments(L, sanny)
-    assert (np.abs(anny - manny) < 0.1)[:3].all()
-    annz = mqlm.annulus_z(L, 1, H, IR, OR, 0, beta)
-    sannz = mshp.wedge(1, IR, OR, H, beta, 1, 0, 0, 1, N, N)
-    mannz = mglb.dmoments(L, sannz)
-    assert (np.abs(annz - mannz) < 0.2)[:3].all()
-    annr = mqlm.annulus_r(L, 1, H, IR, OR, 0, beta)
-    sannr = mshp.wedge_rho(1, IR, OR, H, beta, 1, N, N)
-    mannr = mglb.dmoments(L, sannr)
-    assert (np.abs(annr - mannr) < 0.1)[:3].all()
-    annp = mqlm.annulus_p(L, 1, H, IR, OR, 0, beta)
-    sannp = mshp.wedge_phi(1, IR, OR, H, beta, 1, N, N)
-    mannp = mglb.dmoments(L, sannp)
-    assert (np.abs(annp - mannp) < 0.1)[:3].all()
-
-
-def test_cone():
-    H = 3
-    R = 2
-    L = 10
-    N = 30
-    beta = np.pi
-    conx = mqlm.cone_x(L, 1, H, R, 0, beta)
-    cony = mqlm.cone_y(L, 1, H, R, 0, beta)
-    conx2 = rot.rotate_qlm(cony, 0, 0, -np.pi/2)
-    assert (np.abs(conx - conx2) < 3e3*np.finfo(float).eps).all()
-    sconx = mshp.cone(1, R, H, beta, 1, 1, 0, 0, N, N)
-    mconx = mglb.dmoments(L, sconx)
-    assert (np.abs(conx - mconx) < 0.1)[:3].all()
-    scony = mshp.cone(1, R, H, beta, 1, 0, 1, 0, N, N)
-    mcony = mglb.dmoments(L, scony)
-    assert (np.abs(cony - mcony) < 0.1)[:3].all()
-    conz = mqlm.cone_z(L, 1, H, R, 0, beta)
-    sconz = mshp.cone(1, R, H, beta, 1, 0, 0, 1, N, N)
-    mconz = mglb.dmoments(L, sconz)
-    assert (np.abs(conz - mconz) < 0.1)[:3].all()
-    conr = mqlm.cone_r(L, 1, H, R, 0, beta)
-    sconr = mshp.cone_rho(1, R, H, beta, 1, N, N)
-    mconr = mglb.dmoments(L, sconr)
-    assert (np.abs(conr - mconr) < 0.2)[:3].all()
-    conp = mqlm.cone_p(L, 1, H, R, 0, beta)
-    sconp = mshp.cone_phi(1, R, H, beta, 1, N, N)
-    mconp = mglb.dmoments(L, sconp)
-    assert (np.abs(conp - mconp) < 0.2)[:3].all()
-    beta = np.pi/6
-    conp = mqlm.cone_p(L, 1, H, R, 0, beta)
-    sconp = mshp.cone_phi(1, R, H, beta, 1, N, N)
-    mconp = mglb.dmoments(L, sconp)
-    assert (np.abs(conp - mconp) < 0.2)[:3].all()
