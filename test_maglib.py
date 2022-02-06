@@ -223,11 +223,12 @@ def test_ft_a():
     dmom = mglb.dmoments(lmax, mag1)
     Dmom = mglb.Dmomentsb(lmax, mag2)
     force = mplb.multipole_force(lmax, dmom, Dmom, 0, 0, 0)
-    force = -np.real(force)*mglb.magC/mplb.BIG_G
+    # minus sign on force?
+    force = np.real(force)*mglb.magC/mplb.BIG_G
     tqlm, tc, ts = mplb.torque_lm(lmax, dmom, Dmom)
     torque = np.real(np.sum(tqlm))*mglb.magC/mplb.BIG_G
-    # assert (np.abs(fpred - force) < 10*np.finfo(float).eps).all()
-    # assert (np.abs(tpred[0] - torque) < 10*np.finfo(float).eps).all()
+    assert (np.abs(fpred - force) < 10*np.finfo(float).eps).all()
+    assert (np.abs(tpred[2] - torque) < 10*np.finfo(float).eps).all()
 
 
 def test_ft_b():
@@ -248,11 +249,12 @@ def test_ft_b():
     dmom = mglb.dmoments(lmax, mag1)
     Dmom = mglb.Dmomentsb(lmax, mag2)
     force = mplb.multipole_force(lmax, dmom, Dmom, 0, 0, 0)
-    force = -np.real(force)*mglb.magC/mplb.BIG_G
+    # minus sign on force?
+    force = np.real(force)*mglb.magC/mplb.BIG_G
     tqlm, tc, ts = mplb.torque_lm(lmax, dmom, Dmom)
     torque = np.real(np.sum(tqlm))*mglb.magC/mplb.BIG_G
-    # assert (np.abs(fpred - force) < 10*np.finfo(float).eps).all()
-    # assert (np.abs(tpred - torque) < 10*np.finfo(float).eps).all()
+    assert (np.abs(fpred - force) < 10*np.finfo(float).eps).all()
+    assert (np.abs(tpred[2] - torque) < 10*np.finfo(float).eps).all()
 
 
 def test_ft_c():
@@ -272,11 +274,12 @@ def test_ft_c():
     dmom = mglb.dmoments(lmax, mag1)
     Dmom = mglb.Dmomentsb(lmax, mag2)
     force = mplb.multipole_force(lmax, dmom, Dmom, 0, 0, 0)
-    force = -np.real(force)*mglb.magC/mplb.BIG_G
+    # minus sign on force?
+    force = np.real(force)*mglb.magC/mplb.BIG_G
     tqlm, tc, ts = mplb.torque_lm(lmax, dmom, Dmom)
     torque = np.real(np.sum(tqlm))*mglb.magC/mplb.BIG_G
-    # assert (np.abs(fpred - force) < 10*np.finfo(float).eps).all()
-    # assert (np.abs(tpred - torque) < 10*np.finfo(float).eps).all()
+    assert (np.abs(fpred - force) < 10*np.finfo(float).eps).all()
+    assert (np.abs(tpred[2] - torque) < 10*np.finfo(float).eps).all()
 
 
 def test_Dmombz():

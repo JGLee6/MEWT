@@ -14,9 +14,11 @@ magC = 1e-7
 
 
 def mag_u_array(magnet1, magnet2):
-    """
-    Computes the magnetic force of all magnet2 points on magnet1
-    U = mu0 ma mb (3(_ma._r)(_mb._r) - (_ma._mb))/4pi r**3
+    r"""
+    Compute the magnetic force of all magnet2 points on magnet1.
+
+    .. math::
+        U = \mu_0 m_a m_b (3(m_a\cdot r)(m_b\cdot r) - (m_a\cdot m_b))/4\pi r^3
 
     Inputs
     ------
@@ -66,8 +68,7 @@ def mag_u_array(magnet1, magnet2):
 
 def point_matrix_magnets_energy(magnet1, magnet2):
     """
-    Computes the potential energy between array1 by array2 with a magnetostatic
-    potential.
+    Compute the magnetostatic potential energy between array1 and array2.
 
     Inputs
     ------
@@ -94,11 +95,15 @@ def point_matrix_magnets_energy(magnet1, magnet2):
 
 
 def mag_ft_array(magnet1, magnet2):
-    """
-    Computes the gravitational force of all magnet2 points on magnet1
-    3mu0 ma mb (_r ((_ma._mb)-5(_r._ma)(_r._mb))+_ma(_r._mb)+_mb(_r._ma))/4pi r**4
+    r"""
+    Compute the magnetostatic force and torque from magnet2 points on magnet1.
 
-    mu0 ma mb [3(_ma._r)(_mbx_r)+(_max_mb)]/4pi r**3
+    .. math::
+        F = 3\mu_0 m_a m_b[r ((m_a\cdot m_b)-5(r\cdot m_a)(r\cdot m_b))
+                           +m_a(r\cdot m_b)+m_b(r\cdot m_a)]/4\pi r^4
+
+    .. math::
+        T = \mu_0 m_a m_b [3(m_a\cdot r)(m_b\times r)+(m_a\times m_b)]/4\pi r^3
 
     Inputs
     ------
@@ -155,7 +160,7 @@ def mag_ft_array(magnet1, magnet2):
 
 def point_matrix_magnets(magnet1, magnet2):
     """
-    Computes the force and 3-axis torque about the origin on array1 by array2
+    Compute the force and 3-axis torque about the origin on array1 by array2
     from a magnetostatic potential.
 
     Inputs
@@ -193,7 +198,7 @@ def point_matrix_magnets(magnet1, magnet2):
 
 def translate_dipole_array(pointMagnet, transVec):
     """
-    Translates point mass by transVec (a three vector)
+    Translate point magnets by transVec (a three vector).
 
     Inputs
     ------
@@ -223,8 +228,9 @@ def translate_dipole_array(pointMagnet, transVec):
 
 def rotate_dipole_array(pointMagnet, theta, rotVec):
     """
-    Rotates pointMass by angle (in radians) about vector from origin,
-    using Rodrigues' Formula:
+    Rotate pointMass by angle (in radians) about vector from origin.
+
+    Uses Rodrigues' Formula:
     http://mathworld.wolfram.com/RodriguesRotationFormula.html
 
     This function is different from the simple rotation for the gravitational
@@ -264,7 +270,7 @@ def rotate_dipole_array(pointMagnet, theta, rotVec):
 
 def display_dipoles(pm1, pm2):
     """
-    Creates a 3-dimensional plot of the two point-mass arrays pm1 and pm2.
+    Create a 3-dimensional plot of the two point-mass arrays pm1 and pm2.
 
     Inputs
     ------
@@ -293,8 +299,9 @@ def display_dipoles(pm1, pm2):
 
 def dmoment(l, m, magArray):
     """
-    Computes the small q(l, m) inner multipole moment of a point dipole array
-    by evaluating the dot product with the derivative of the solid harmonic at
+    Computes the small q(l, m) inner multipole moment of a point dipole array.
+
+    Evaluates the dot product with the derivative of the solid harmonic at
     each point-dipole position.
 
     Inputs
@@ -325,22 +332,28 @@ def dmoment(l, m, magArray):
     # Find contributions to each moment from each term in gradient
     # Now Varshalovich p160 eqn10, eqn11
     # Varshalovich p225 eqn17
+    rl = r**(l-1)
+    rlfac = rl*np.sqrt(l*(2*l+1)/(2*l*(2*l-1)))
     qlm0, qlmm1, qlmp1 = 0, 0, 0
     if abs(m) <= l-1:
-        qlm0 = e0*np.sqrt((l-m)*(l+m)/(l*(2*l-1)))*np.conj(sp.sph_harm(m, l-1, phi, theta))
+        y0 = np.sqrt((l-m)*(l+m)*2)*np.conj(sp.sph_harm(m, l-1, phi, theta))
+        qlm0 = e0*y0
     if abs(m-1) <= l-1:
-        qlmm1 = em1*np.sqrt((l+m)*(l+m-1)/((2*l)*(2*l-1)))*np.conj(sp.sph_harm(m-1, l-1, phi, theta))
+        ym = np.sqrt((l+m)*(l+m-1))*np.conj(sp.sph_harm(m-1, l-1, phi, theta))
+        qlmm1 = -em1*ym
     if abs(m+1) <= l-1:
-        qlmp1 = ep1*np.sqrt((l-m)*(l-m-1)/((2*l)*(2*l-1)))*np.conj(sp.sph_harm(m+1, l-1, phi, theta))
+        yp = np.sqrt((l-m)*(l-m-1))*np.conj(sp.sph_harm(m+1, l-1, phi, theta))
+        qlmp1 = -ep1*yp
     # Now Varshalovich p160 eqn13
-    qlm = np.sum(magArray[:, 4]*np.sqrt(l*(2*l+1))*r**(l-1)*(qlm0 + qlmp1 + qlmm1))
+    qlm = np.sum(magArray[:, 4]*rlfac*(qlm0 + qlmm1 + qlmp1))
     return qlm
 
 
 def dmoments(l, magArray):
     """
-    Computes all small q(l, m) inner multipole moment of a point dipole array
-    by evaluating the dot product with the derivative of the solid harmonic at
+    Compute all small q(l, m) inner multipole moment of a point dipole array.
+
+    Evaluates the dot product with the derivative of the solid harmonic at
     each point-dipole position.
 
     Inputs
@@ -372,11 +385,14 @@ def dmoments(l, magArray):
         for m in range(n+1):
             qlm0, qlmm1, qlmp1 = 0, 0, 0
             if abs(m) <= n-1:
-                qlm0 = e0*np.sqrt((n-m)*(n+m)*2)*np.conj(sp.sph_harm(m, n-1, phi, theta))
+                y0 = np.sqrt((n-m)*(n+m)*2)*np.conj(sp.sph_harm(m, n-1, phi, theta))
+                qlm0 = e0*y0
             if abs(m-1) <= n-1:
-                qlmm1 = -em1*np.sqrt((n+m)*(n+m-1))*np.conj(sp.sph_harm(m-1, n-1, phi, theta))
+                ym = np.sqrt((n+m)*(n+m-1))*np.conj(sp.sph_harm(m-1, n-1, phi, theta))
+                qlmm1 = -em1*ym
             if abs(m+1) <= n-1:
-                qlmp1 = -ep1*np.sqrt((n-m)*(n-m-1))*np.conj(sp.sph_harm(m+1, n-1, phi, theta))
+                yp = np.sqrt((n-m)*(n-m-1))*np.conj(sp.sph_harm(m+1, n-1, phi, theta))
+                qlmp1 = -ep1*yp
             qlms[n, l+m] = np.sum(magArray[:, 4]*rlfac*(qlm0 + qlmm1 + qlmp1))
 
     # Moments always satisfy q(l, -m) = (-1)^m q(l, m)*
@@ -390,8 +406,9 @@ def dmoments(l, magArray):
 
 def Dmomentsb(l, magArray):
     """
-    Computes all big Q(l, m) outer multipole moment of a point dipole array
-    by evaluating the dot product with the derivative of the irregular solid
+    Compute all big Q(l, m) outer multipole moment of a point dipole array.
+
+    Evaluates the dot product with the derivative of the irregular solid
     harmonic at each point-dipole position.
 
     Inputs
@@ -416,7 +433,6 @@ def Dmomentsb(l, magArray):
     ep1 = -1/np.sqrt(2)*(magArray[:, 5] + 1j*magArray[:, 6])
     e0 = magArray[:, 7]
     em1 = 1/np.sqrt(2)*(magArray[:, 5] - 1j*magArray[:, 6])
-    # Never have a l=0 moment for dipoles
     for n in range(l+1):
         rl = r**(-n-2)
         rlfac = rl*np.sqrt((n+1)*(2*n+1)/(2*(n+1)*(2*n+3)))

@@ -1,5 +1,5 @@
 # MEWT (Magnetic E&ouml;t-Wash Toolkit)
-## A package for calculating forces and torques with Newtonian gravity from the E&ouml;t-Wash group
+## A package for calculating magnetostatic forces and torques from the E&ouml;t-Wash group
 ## John Greendeer Lee
 
 
