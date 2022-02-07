@@ -32,11 +32,15 @@ def test_rect():
 
 
 def test_recx():
-    rqlm0 = mqlm.rect_prism_z(10, 1, 2, 3, 5, 0)
+    # Compare two methods
     rqlmx = mqlm.rect_prism_x(10, 1, 3, 2, 5, 0)
     rqlmx2 = mqlm.rect_prism_x2(10, 1, 3, 2, 5, 0)
-    # rotate z-oriented to x-oriented
+    assert (np.abs(rqlmx2 - rqlmx) < 3e5*np.finfo(float).eps).all()
+    # Compare to z-oriented rotated to x-oriented
+    rqlm0 = mqlm.rect_prism_z(10, 1, 2, 3, 5, 0)
     rqlmx3 = rot.rotate_qlm(rqlm0, 0, np.pi/2, 0)
+    assert (np.abs(rqlmx2 - rqlmx3) < 3e5*np.finfo(float).eps).all()
+    # Compare to rect assembled from triangular prisms
     tri0 = mqlm.tri_prism_x(10, 1, 3, 2/2, -2.5, 2.5)
     tri1 = mqlm.tri_prism_x(10, -1, 3, 2/2, -2.5, 2.5)
     tri1 = rot.rotate_qlm(tri1, 0, 0, np.pi)
@@ -45,22 +49,24 @@ def test_recx():
     tri2 = rot.rotate_qlm(tri2, 0, 0, -np.pi/2)
     tri3 = rot.rotate_qlm(tri3, 0, 0, np.pi/2)
     rqlmx4 = tri0 + tri1 + tri2 + tri3
-    rect5 = mshp.rectangle(1, 2, 5, 3, 1, 1, 0, 0, 10, 10, 10)
-    rqlmx5 = mglb.dmoments(10, rect5)
-    rect6 = mshp.rectangle(1, 2, 5, 3, 1, 1, 0, 0, 20, 20, 20)
-    rqlmx6 = mglb.dmoments(10, rect6)
-    assert (np.abs(rqlmx2 - rqlmx3) < 3e5*np.finfo(float).eps).all()
     assert (np.abs(rqlmx2 - rqlmx4) < 3e5*np.finfo(float).eps).all()
-    # PointDipole gets bad after l=2
-    assert (np.abs(rqlmx2 - rqlmx6) < 3e5*np.finfo(float).eps)[:3].all()
+    # Compare to point-dipole approximation to l=5
+    N = 40
+    rect5 = mshp.rectangle(1, 2, 5, 3, 1, 1, 0, 0, N, N, N)
+    rqlmx5 = mglb.dmoments(10, rect5)
+    assert (np.abs(rqlmx2 - rqlmx5) < .1)[:5].all()
 
 
 def test_recy():
-    rqlm0 = mqlm.rect_prism_z(10, 1, 2, 3, 5, 0)
+    # Compare two methods
     rqlmy = mqlm.rect_prism_y(10, 1, 5, 3, 2, 0)
     rqlmy2 = mqlm.rect_prism_y2(10, 1, 5, 3, 2, 0)
-    # rotate z-oriented to x-oriented
+    assert(np.abs(rqlmy-rqlmy2) < 3e5*np.finfo(float).eps).all()
+    # Compare to z-oriented rotated to y-oriented
+    rqlm0 = mqlm.rect_prism_z(10, 1, 2, 3, 5, 0)
     rqlmy3 = rot.rotate_qlm(rqlm0, np.pi/2, np.pi/2, -np.pi/2)
+    assert (np.abs(rqlmy2 - rqlmy3) < 3e5*np.finfo(float).eps).all()
+    # Compare to rect assembled from triangular prisms
     tri0 = mqlm.tri_prism_y(10, 1, 5, 3/2, -1, 1)
     tri1 = mqlm.tri_prism_y(10, -1, 5, 3/2, -1, 1)
     tri1 = rot.rotate_qlm(tri1, 0, 0, np.pi)
@@ -69,12 +75,12 @@ def test_recy():
     tri2 = rot.rotate_qlm(tri2, 0, 0, np.pi/2)
     tri3 = rot.rotate_qlm(tri3, 0, 0, -np.pi/2)
     rqlmy4 = tri0 + tri1 + tri2 + tri3
-    rect5 = mshp.rectangle(1, 3, 2, 5, 1, 0, 1, 0, 10, 10, 10)
-    rqlmy5 = mglb.dmoments(10, rect5)
-    rect6 = mshp.rectangle(1, 3, 2, 5, 1, 0, 1, 0, 20, 20, 20)
-    rqlmy6 = mglb.dmoments(10, rect6)
-    assert (np.abs(rqlmy2 - rqlmy3) < 3e5*np.finfo(float).eps).all()
     assert (np.abs(rqlmy4 - rqlmy3) < 3e5*np.finfo(float).eps).all()
+    # Compare to point-dipole approximation to l=5
+    N = 40
+    rect5 = mshp.rectangle(1, 3, 2, 5, 1, 0, 1, 0, N, N, N)
+    rqlmy5 = mglb.dmoments(10, rect5)
+    assert (np.abs(rqlmy5 - rqlmy2) < .1)[:5].all()
 
 
 def test_tri():
@@ -143,8 +149,8 @@ def test_ann2():
     beta = np.pi/6
     annx = mqlm.annulus_x(L, 1, H, IR, OR, 0, beta)
     anny = mqlm.annulus_y(L, 1, H, IR, OR, 0, beta)
-    #annx2 = rot.rotate_qlm(anny, 0, 0, -np.pi/2)
-    #assert (np.abs(annx - annx2) < 3e4*np.finfo(float).eps).all()
+    # annx2 = rot.rotate_qlm(anny, 0, 0, -np.pi/2)
+    # assert (np.abs(annx - annx2) < 3e4*np.finfo(float).eps).all()
     sannx = mshp.wedge(1, IR, OR, H, beta, 1, 1, 0, 0, N, N)
     mannx = mglb.dmoments(L, sannx)
     assert (np.abs(annx - mannx) < 0.1)[:3].all()
@@ -193,7 +199,32 @@ def test_cone():
     sconp = mshp.cone_phi(1, R, H, beta, 1, N, N)
     mconp = mglb.dmoments(L, sconp)
     assert (np.abs(conp - mconp) < 0.2)[:3].all()
+
+
+def test_cone2():
+    H = 3
+    R = 2
+    L = 10
+    N = 30
     beta = np.pi/6
+    conx = mqlm.cone_x(L, 1, H, R, 0, beta)
+    cony = mqlm.cone_y(L, 1, H, R, 0, beta)
+    # conx2 = rot.rotate_qlm(cony, 0, 0, -np.pi/2)
+    # assert (np.abs(conx - conx2) < 3e3*np.finfo(float).eps).all()
+    sconx = mshp.cone(1, R, H, beta, 1, 1, 0, 0, N, N)
+    mconx = mglb.dmoments(L, sconx)
+    assert (np.abs(conx - mconx) < 0.1)[:3].all()
+    scony = mshp.cone(1, R, H, beta, 1, 0, 1, 0, N, N)
+    mcony = mglb.dmoments(L, scony)
+    assert (np.abs(cony - mcony) < 0.1)[:3].all()
+    conz = mqlm.cone_z(L, 1, H, R, 0, beta)
+    sconz = mshp.cone(1, R, H, beta, 1, 0, 0, 1, N, N)
+    mconz = mglb.dmoments(L, sconz)
+    assert (np.abs(conz - mconz) < 0.1)[:3].all()
+    conr = mqlm.cone_r(L, 1, H, R, 0, beta)
+    sconr = mshp.cone_rho(1, R, H, beta, 1, N, N)
+    mconr = mglb.dmoments(L, sconr)
+    assert (np.abs(conr - mconr) < 0.2)[:3].all()
     conp = mqlm.cone_p(L, 1, H, R, 0, beta)
     sconp = mshp.cone_phi(1, R, H, beta, 1, N, N)
     mconp = mglb.dmoments(L, sconp)

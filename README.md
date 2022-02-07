@@ -32,6 +32,8 @@ A point dipole array is an Nx8 array of points with [m, x, y, z, s, sx, sy, sz] 
 	- [X] rho
 	- [X] rho, beta != pi
 	- [X] phi
-	- [ ] phi, beta != pi, -> minus sign
-- [ ] fix y-axis error in moments from point dipole
+	- [X] phi, beta != pi, -> minus sign
+- [X] fix y-axis error in moments from point dipole
 - [X] point mags
+- [ ] factor 2 in torque, minus sign force?
+- [ ] phi_0 for x,y shapes
