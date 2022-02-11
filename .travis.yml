@@ -14,4 +14,4 @@ install:
   - pip install ./NewtonianEotWashToolkit # install package + test dependencies (blog.travis-ci.com/2019-08-07-extensive-python-testing-on-travis-ci
 # command to run tests
 script:
-  - python -m pytest --cov=mewt # see if automatic discovery with coverage report
+  - python -m pytest --cov=mewt ./tests/ # see if automatic discovery with coverage report
