@@ -5,8 +5,8 @@ Created on Thu Sep 17 14:35:15 2020
 @author: jgl6
 """
 import numpy as np
-import maglib as mglb
-import maglibShapes as mshp
+import mewt.maglib as mglb
+import mewt.maglibShapes as mshp
 import newt.multipoleLib as mplb
 import newt.translations as trs
 import newt.rotations as rot

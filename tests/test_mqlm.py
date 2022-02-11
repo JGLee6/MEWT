@@ -6,9 +6,9 @@ Created on Thu Feb  3 17:36:17 2022
 @author: John Greendeer Lee
 """
 import numpy as np
-import mqlm
-import maglib as mglb
-import maglibShapes as mshp
+import mewt.mqlm as mqlm
+import mewt.maglib as mglb
+import mewt.maglibShapes as mshp
 import newt.rotations as rot
 
 

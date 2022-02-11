@@ -5,7 +5,7 @@ Created on Mon Nov 16 15:27:33 2020
 @author: jgl6
 """
 import numpy as np
-import maglib as mglb
+import mewt.maglib as mglb
 import newt.translations as trs
 import newt.rotations as rot
 import newt.pg2Multi as pgm

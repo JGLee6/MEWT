@@ -18,7 +18,9 @@ def mag_u_array(magnet1, magnet2):
     Compute the magnetic force of all magnet2 points on magnet1.
 
     .. math::
-        U = \mu_0 m_a m_b (3(m_a\cdot r)(m_b\cdot r) - (m_a\cdot m_b))/4\pi r^3
+        U &= -m_a \cdot B \\
+        U &= -m_a \cdot (\mu_0(3\hat{r}(\hat{r}\cdot m_b)-m_b)/4\pi r^3) \\
+        U &=-\mu_0(3(m_a\cdot\hat{r})(m_b\cdot\hat{r})-(m_a\cdot m_b))/4\pi r^3
 
     Inputs
     ------
@@ -103,7 +105,9 @@ def mag_ft_array(magnet1, magnet2):
                            +m_a(r\cdot m_b)+m_b(r\cdot m_a)]/4\pi r^4
 
     .. math::
-        T = \mu_0 m_a m_b [3(m_a\cdot r)(m_b\times r)+(m_a\times m_b)]/4\pi r^3
+        T &= m_a \times B \\
+        T &= \mu_0[3(m_b\cdot\hat{r})(m_a\times\hat{r})-(m_a\times m_b)]
+        /4\pi r^3
 
     Inputs
     ------
@@ -132,7 +136,7 @@ def mag_ft_array(magnet1, magnet2):
         # Compute force
         fac = magC*magnet1[4]*magnet2[4]/r**3
         force = 3*fac*(rhat*(m1m2 - 5*rm1*rm2)+m1hat*(rm2)+m2hat*(rm1))/r
-        torque = fac*(3*rm1*np.cross(m2hat, rhat) + np.cross(m1hat, m2hat))
+        torque = fac*(3*rm2*np.cross(m1hat, rhat) - np.cross(m1hat, m2hat))
     else:
         # Which way does the force act
         rvec = magnet2[:, 1:4]-magnet1[1:4]
@@ -152,8 +156,8 @@ def mag_ft_array(magnet1, magnet2):
         f2 = np.sum(np.outer(m1hat, facf*rm2).T, 0)
         f3 = m2hat.T.dot(facf*rm1)
         force = f1+f2+f3
-        torque = np.cross(m2hat, rhat).T.dot(3*fac*rm1)
-        torque += np.cross(m1hat, m2hat).T.dot(fac)
+        torque = np.cross(m1hat, rhat).T.dot(3*fac*rm2)
+        torque -= np.cross(m1hat, m2hat).T.dot(fac)
 
     return force, torque
 
