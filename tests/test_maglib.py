@@ -260,7 +260,7 @@ def test_ft_b():
     mag1 = np.array([[1, 0, 0, 0, 1, 0, 0, 1]])
     mag2 = np.array([[1, 1, 0, 0, 1, 1, 0, 0]])
     fpred = np.array([0, 0, 3*mglb.mu_0/(4*np.pi)])
-    tpred = np.array([0, mglb.mu_0/(4*np.pi), 0])
+    tpred = np.array([0, 2*mglb.mu_0/(4*np.pi), 0])
     f, t2, t = mglb.point_matrix_magnets(mag1, mag2)
     assert (np.abs(f - fpred) < 10*np.finfo(float).eps).all()
     assert (np.abs(t2 - tpred) < 10*np.finfo(float).eps).all()
