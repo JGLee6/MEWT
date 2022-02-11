@@ -206,6 +206,25 @@ def test_rot_b():
     assert (np.abs(dmomyzrt - dmomzt) < 2e2*np.finfo(float).eps).all()
 
 
+def test_rot_0():
+    """
+    GIVEN a z-dipole at the origin
+    WHEN rotated 100x at random 3d angle
+    THEN ensure dipole magnitude unchaged.
+    """
+    # z-dip at origin -> mom -> [0, 0, 1]
+    magz = np.array([[1, 0, 0, 0, 1, 0, 0, 1]])
+    for k in range(100):
+        rands = np.random.rand(4)
+        rands[0] *= np.pi*2
+        magz = mglb.rotate_dipole_array(magz, rands[0], rands[1:])
+    # Check that magnitude of magnetization unchanged
+    assert magz[0, 4] == 1
+    # Check that magnitude of magnetization vector unchanged
+    svec = magz[0, 5:]
+    assert np.abs(np.dot(svec, svec) - 1) < 1e3*np.finfo(float).eps
+
+
 def test_ft_a():
     """
     Compares the analytic force and torque prediction to the point_dipole
@@ -486,29 +505,112 @@ def test_Dmombs_dy():
     assert (np.abs(DmomA - DmomB) < 5e6*np.finfo(float).eps).all()
 
 
-def test_force():
+def test_force_x():
     """
+    GIVEN 3-fold x-dipoles in circle of radius=1, at phi=0 and z=0
+    AND 3-fold x-dipoles in circle of radius=1 at phi=pi/6 and z=3
+    WHEN force and torques are computed using maglib.point_matrix_magnets
+    AND using an explicit write of summing over all 9 pairs
+    AND by converting to multipole moments and computing force and torques
+    THEN expect all three match to roughly floating point precision
     """
     thetak = np.pi/6
-    mag3p = np.array([[1, 1, 0, .25, 1, 1, 0, 0],
-                      [1, np.cos(2*np.pi/3), np.sin(2*np.pi/3), .25,
-                       1, 1, 0, 0],
-                      [1, np.cos(2*np.pi/3), -np.sin(2*np.pi/3), .25,
-                       1, 1, 0, 0]])
-    mag3a = np.array([[1, np.cos(thetak), np.sin(thetak), -.25, 1, 1, 0, 0],
-                      [1, np.cos(thetak+2*np.pi/3), np.sin(thetak+2*np.pi/3),
-                       -.25, 1, 1, 0, 0],
-                      [1, np.cos(thetak-2*np.pi/3), np.sin(thetak-2*np.pi/3),
-                       -.25, 1, 1, 0, 0]])
+    z = 3
+    lmax = 20
+    mag3p = xpoint(0, 3)
+    mag3a = xpoint(thetak, 3)
+    mag3a = mglb.translate_dipole_array(mag3a, [0, 0, z])
     frc, trq2, trq = mglb.point_matrix_magnets(mag3p, mag3a)
-    frcb, trqb = 0, 0
+    frcb, trq2b, trqb = 0, 0, 0
     for k in range(len(mag3p)):
         for m in range(len(mag3a)):
             frckm, trqkm = mglb.mag_ft_array(mag3p[k], mag3a[m])
             frcb += frckm
-            trqb += trqkm
+            trq2b += trqkm
+            trqb += np.cross(mag3p[k, 1:4], frckm)
+    dmom = mglb.dmoments(lmax, mag3p)
+    Dmomb = mglb.Dmomentsb(lmax, mag3a)
+    frcc = mplb.multipole_force(lmax, dmom, Dmomb, 0, 0, 0)
+    frcc *= mglb.magC/mplb.BIG_G
+    tlm, tc, ts = mplb.torque_lm(lmax, dmom, Dmomb)
+    tc *= -mglb.magC/mplb.BIG_G
     assert (np.abs(frc - frcb) < 10*np.finfo(float).eps).all()
-    assert (np.abs(trq2 - trqb) < 10*np.finfo(float).eps).all()
+    assert (np.abs(trq2 - trq2b) < 10*np.finfo(float).eps).all()
+    assert (np.abs(trq - trqb) < 10*np.finfo(float).eps).all()
+    assert (np.abs(frc - frcc) < 1e2*np.finfo(float).eps).all()
+    assert (np.abs(trq2[2]+trq[2] - np.sum(tc)) < 10*np.finfo(float).eps).all()
+
+
+def test_force_y():
+    """
+    GIVEN 3-fold y-dipoles in circle of radius=1, at phi=0 and z=0
+    AND 3-fold y-dipoles in circle of radius=1 at phi=pi/6 and z=3
+    WHEN force and torques are computed using maglib.point_matrix_magnets
+    AND using an explicit write of summing over all 9 pairs
+    AND by converting to multipole moments and computing force and torques
+    THEN expect all three match to roughly floating point precision
+    """
+    thetak = np.pi/6
+    z = 3
+    lmax = 20
+    mag3p = ypoint(0, 3)
+    mag3a = ypoint(thetak, 3)
+    mag3a = mglb.translate_dipole_array(mag3a, [0, 0, z])
+    frc, trq2, trq = mglb.point_matrix_magnets(mag3p, mag3a)
+    frcb, trq2b, trqb = 0, 0, 0
+    for k in range(len(mag3p)):
+        for m in range(len(mag3a)):
+            frckm, trqkm = mglb.mag_ft_array(mag3p[k], mag3a[m])
+            frcb += frckm
+            trq2b += trqkm
+            trqb += np.cross(mag3p[k, 1:4], frckm)
+    dmom = mglb.dmoments(lmax, mag3p)
+    Dmomb = mglb.Dmomentsb(lmax, mag3a)
+    frcc = mplb.multipole_force(lmax, dmom, Dmomb, 0, 0, 0)
+    frcc *= mglb.magC/mplb.BIG_G
+    tlm, tc, ts = mplb.torque_lm(lmax, dmom, Dmomb)
+    tc *= -mglb.magC/mplb.BIG_G
+    assert (np.abs(frc - frcb) < 10*np.finfo(float).eps).all()
+    assert (np.abs(trq2 - trq2b) < 10*np.finfo(float).eps).all()
+    assert (np.abs(trq - trqb) < 10*np.finfo(float).eps).all()
+    assert (np.abs(frc - frcc) < 1e2*np.finfo(float).eps).all()
+    assert (np.abs(trq2[2]+trq[2] - np.sum(tc)) < 10*np.finfo(float).eps).all()
+
+
+def test_force_z():
+    """
+    GIVEN 3-fold z-dipoles in circle of radius=1, at phi=0 and z=0
+    AND 3-fold z-dipoles in circle of radius=1 at phi=pi/6 and z=3
+    WHEN force and torques are computed using maglib.point_matrix_magnets
+    AND using an explicit write of summing over all 9 pairs
+    AND by converting to multipole moments and computing force and torques
+    THEN expect all three match to roughly floating point precision
+    """
+    thetak = np.pi/6
+    z = 3
+    lmax = 20
+    mag3p = zpoint(0, 3)
+    mag3a = zpoint(thetak, 3)
+    mag3a = mglb.translate_dipole_array(mag3a, [0, 0, z])
+    frc, trq2, trq = mglb.point_matrix_magnets(mag3p, mag3a)
+    frcb, trq2b, trqb = 0, 0, 0
+    for k in range(len(mag3p)):
+        for m in range(len(mag3a)):
+            frckm, trqkm = mglb.mag_ft_array(mag3p[k], mag3a[m])
+            frcb += frckm
+            trq2b += trqkm
+            trqb += np.cross(mag3p[k, 1:4], frckm)
+    dmom = mglb.dmoments(lmax, mag3p)
+    Dmomb = mglb.Dmomentsb(lmax, mag3a)
+    frcc = mplb.multipole_force(lmax, dmom, Dmomb, 0, 0, 0)
+    frcc *= mglb.magC/mplb.BIG_G
+    tlm, tc, ts = mplb.torque_lm(lmax, dmom, Dmomb)
+    tc *= -mglb.magC/mplb.BIG_G
+    assert (np.abs(frc - frcb) < 10*np.finfo(float).eps).all()
+    assert (np.abs(trq2 - trq2b) < 10*np.finfo(float).eps).all()
+    assert (np.abs(trq - trqb) < 10*np.finfo(float).eps).all()
+    assert (np.abs(frc - frcc) < 1e2*np.finfo(float).eps).all()
+    assert (np.abs(trq2[2]+trq[2] - np.sum(tc)) < 10*np.finfo(float).eps).all()
 
 
 def energy_3om(theta, z):

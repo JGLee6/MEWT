@@ -642,7 +642,7 @@ def annulus_z(L, Mz, H, Ri, Ro, phic, phih):
 
 def annulus_r(L, Mr, H, Ri, Ro, phic, phih):
     """
-    Only L-M odd survive. We use the notation of Stirling and Schlamminger to
+    Only L-M even survive. We use the notation of Stirling and Schlamminger to
     compute the inner moments of an annular section. This is a non-recursive
     attempt. The solid has a height H and extends above and below the xy-plane
     by H/2.
@@ -700,7 +700,7 @@ def annulus_r(L, Mr, H, Ri, Ro, phic, phih):
 
 def annulus_p(L, Mp, H, Ri, Ro, phic, phih):
     """
-    Only L-M odd survive. We use the notation of Stirling and Schlamminger to
+    Only L-M even survive. We use the notation of Stirling and Schlamminger to
     compute the inner moments of an annular section. This is a non-recursive
     attempt. The solid has a height H and extends above and below the xy-plane
     by H/2.
@@ -757,7 +757,7 @@ def annulus_p(L, Mp, H, Ri, Ro, phic, phih):
 
 def annulus_x(L, Mx, H, Ri, Ro, phic, phih):
     """
-    Only L-M odd survive. We use the notation of Stirling and Schlamminger to
+    Only L-M even survive. We use the notation of Stirling and Schlamminger to
     compute the inner moments of an annular section. This is a non-recursive
     attempt. The solid has a height H and extends above and below the xy-plane
     by H/2.
@@ -816,7 +816,7 @@ def annulus_x(L, Mx, H, Ri, Ro, phic, phih):
 
 def annulus_y(L, My, H, Ri, Ro, phic, phih):
     """
-    Only L-M odd survive. We use the notation of Stirling and Schlamminger to
+    Only L-M even survive. We use the notation of Stirling and Schlamminger to
     compute the inner moments of an annular section. This is a non-recursive
     attempt. The solid has a height H and extends above and below the xy-plane
     by H/2.
