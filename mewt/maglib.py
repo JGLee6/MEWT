@@ -101,8 +101,10 @@ def mag_ft_array(magnet1, magnet2):
     Compute the magnetostatic force and torque from magnet2 points on magnet1.
 
     .. math::
-        F = 3\mu_0 m_a m_b[r ((m_a\cdot m_b)-5(r\cdot m_a)(r\cdot m_b))
-                           +m_a(r\cdot m_b)+m_b(r\cdot m_a)]/4\pi r^4
+        F &= \nabla(m_a\cdot B) = -\nabla_a(m_a\cdot B) \\
+        F &= -\frac{3\mu_0}{4\pi r^4}
+        [\hat{r}(m_a\cdot m_b) + m_a(\hat{r}\cdot m_b) + m_b(\hat{r}\cdot m_a)
+             -5\hat{r}(\hat{r}\cdot m_a)(\hat{r}\cdot m_b))]
 
     .. math::
         T &= m_a \times B \\
@@ -135,7 +137,7 @@ def mag_ft_array(magnet1, magnet2):
         rm2 = np.dot(rhat, m2hat)
         # Compute force
         fac = magC*magnet1[4]*magnet2[4]/r**3
-        force = 3*fac*(rhat*(m1m2 - 5*rm1*rm2)+m1hat*(rm2)+m2hat*(rm1))/r
+        force = -3*fac*(rhat*(m1m2 - 5*rm1*rm2)+m1hat*(rm2)+m2hat*(rm1))/r
         torque = fac*(3*rm2*np.cross(m1hat, rhat) - np.cross(m1hat, m2hat))
     else:
         # Which way does the force act
@@ -155,7 +157,7 @@ def mag_ft_array(magnet1, magnet2):
         f1 = rhat.T.dot(facf*(m1m2-5*rm1*rm2))
         f2 = np.sum(np.outer(m1hat, facf*rm2).T, 0)
         f3 = m2hat.T.dot(facf*rm1)
-        force = f1+f2+f3
+        force = -(f1+f2+f3)
         torque = np.cross(m1hat, rhat).T.dot(3*fac*rm2)
         torque -= np.cross(m1hat, m2hat).T.dot(fac)
 

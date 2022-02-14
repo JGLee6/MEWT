@@ -233,7 +233,7 @@ def test_ft_a():
     """
     mag1 = np.array([[1, 0, 0, 0, 1, 0, 0, 1]])
     mag2 = np.array([[1, 1, 0, 0, 1, 0, 0, 1]])
-    fpred = np.array([3*mglb.mu_0/(4*np.pi), 0, 0])
+    fpred = np.array([-3*mglb.mu_0/(4*np.pi), 0, 0])
     tpred = np.array([0, 0, 0])
     f, t2, t = mglb.point_matrix_magnets(mag1, mag2)
     assert (np.abs(f - fpred) < 10*np.finfo(float).eps).all()
@@ -243,7 +243,7 @@ def test_ft_a():
     Dmom = mglb.Dmomentsb(lmax, mag2)
     force = mplb.multipole_force(lmax, dmom, Dmom, 0, 0, 0)
     # minus sign on force?
-    force = np.real(force)*mglb.magC/mplb.BIG_G
+    force = -force*mglb.magC/mplb.BIG_G
     tqlm, tc, ts = mplb.torque_lm(lmax, dmom, Dmom)
     torque = np.real(np.sum(tqlm))*mglb.magC/mplb.BIG_G
     assert (np.abs(fpred - force) < 10*np.finfo(float).eps).all()
@@ -259,7 +259,7 @@ def test_ft_b():
     """
     mag1 = np.array([[1, 0, 0, 0, 1, 0, 0, 1]])
     mag2 = np.array([[1, 1, 0, 0, 1, 1, 0, 0]])
-    fpred = np.array([0, 0, 3*mglb.mu_0/(4*np.pi)])
+    fpred = np.array([0, 0, -3*mglb.mu_0/(4*np.pi)])
     tpred = np.array([0, 2*mglb.mu_0/(4*np.pi), 0])
     f, t2, t = mglb.point_matrix_magnets(mag1, mag2)
     assert (np.abs(f - fpred) < 10*np.finfo(float).eps).all()
@@ -269,7 +269,7 @@ def test_ft_b():
     Dmom = mglb.Dmomentsb(lmax, mag2)
     force = mplb.multipole_force(lmax, dmom, Dmom, 0, 0, 0)
     # minus sign on force?
-    force = np.real(force)*mglb.magC/mplb.BIG_G
+    force = -force*mglb.magC/mplb.BIG_G
     tqlm, tc, ts = mplb.torque_lm(lmax, dmom, Dmom)
     torque = np.real(np.sum(tqlm))*mglb.magC/mplb.BIG_G
     assert (np.abs(fpred - force) < 10*np.finfo(float).eps).all()
@@ -284,7 +284,7 @@ def test_ft_c():
     """
     mag1 = np.array([[1, 0, 0, 0, 1, 1, 0, 0]])
     mag2 = np.array([[1, 1, 0, 0, 1, 1, 0, 0]])
-    fpred = np.array([-6*mglb.mu_0/(4*np.pi), 0, 0])
+    fpred = np.array([6*mglb.mu_0/(4*np.pi), 0, 0])
     tpred = np.array([0, 0, 0])
     f, t2, t = mglb.point_matrix_magnets(mag1, mag2)
     assert (np.abs(f - fpred) < 10*np.finfo(float).eps).all()
@@ -294,7 +294,7 @@ def test_ft_c():
     Dmom = mglb.Dmomentsb(lmax, mag2)
     force = mplb.multipole_force(lmax, dmom, Dmom, 0, 0, 0)
     # minus sign on force?
-    force = np.real(force)*mglb.magC/mplb.BIG_G
+    force = -force*mglb.magC/mplb.BIG_G
     tqlm, tc, ts = mplb.torque_lm(lmax, dmom, Dmom)
     torque = np.real(np.sum(tqlm))*mglb.magC/mplb.BIG_G
     assert (np.abs(fpred - force) < 10*np.finfo(float).eps).all()
@@ -531,14 +531,14 @@ def test_force_x():
     dmom = mglb.dmoments(lmax, mag3p)
     Dmomb = mglb.Dmomentsb(lmax, mag3a)
     frcc = mplb.multipole_force(lmax, dmom, Dmomb, 0, 0, 0)
-    frcc *= mglb.magC/mplb.BIG_G
+    frcc *= -mglb.magC/mplb.BIG_G
     tlm, tc, ts = mplb.torque_lm(lmax, dmom, Dmomb)
     tc *= -mglb.magC/mplb.BIG_G
     assert (np.abs(frc - frcb) < 10*np.finfo(float).eps).all()
     assert (np.abs(trq2 - trq2b) < 10*np.finfo(float).eps).all()
     assert (np.abs(trq - trqb) < 10*np.finfo(float).eps).all()
     assert (np.abs(frc - frcc) < 1e2*np.finfo(float).eps).all()
-    assert (np.abs(trq2[2]+trq[2] - np.sum(tc)) < 10*np.finfo(float).eps).all()
+    assert (np.abs(trq2[2]+trq[2] + np.sum(tc)) < 10*np.finfo(float).eps).all()
 
 
 def test_force_y():
@@ -567,14 +567,14 @@ def test_force_y():
     dmom = mglb.dmoments(lmax, mag3p)
     Dmomb = mglb.Dmomentsb(lmax, mag3a)
     frcc = mplb.multipole_force(lmax, dmom, Dmomb, 0, 0, 0)
-    frcc *= mglb.magC/mplb.BIG_G
+    frcc *= -mglb.magC/mplb.BIG_G
     tlm, tc, ts = mplb.torque_lm(lmax, dmom, Dmomb)
     tc *= -mglb.magC/mplb.BIG_G
     assert (np.abs(frc - frcb) < 10*np.finfo(float).eps).all()
     assert (np.abs(trq2 - trq2b) < 10*np.finfo(float).eps).all()
     assert (np.abs(trq - trqb) < 10*np.finfo(float).eps).all()
     assert (np.abs(frc - frcc) < 1e2*np.finfo(float).eps).all()
-    assert (np.abs(trq2[2]+trq[2] - np.sum(tc)) < 10*np.finfo(float).eps).all()
+    assert (np.abs(trq2[2]+trq[2] + np.sum(tc)) < 10*np.finfo(float).eps).all()
 
 
 def test_force_z():
@@ -603,14 +603,14 @@ def test_force_z():
     dmom = mglb.dmoments(lmax, mag3p)
     Dmomb = mglb.Dmomentsb(lmax, mag3a)
     frcc = mplb.multipole_force(lmax, dmom, Dmomb, 0, 0, 0)
-    frcc *= mglb.magC/mplb.BIG_G
+    frcc *= -mglb.magC/mplb.BIG_G
     tlm, tc, ts = mplb.torque_lm(lmax, dmom, Dmomb)
     tc *= -mglb.magC/mplb.BIG_G
     assert (np.abs(frc - frcb) < 10*np.finfo(float).eps).all()
     assert (np.abs(trq2 - trq2b) < 10*np.finfo(float).eps).all()
     assert (np.abs(trq - trqb) < 10*np.finfo(float).eps).all()
     assert (np.abs(frc - frcc) < 1e2*np.finfo(float).eps).all()
-    assert (np.abs(trq2[2]+trq[2] - np.sum(tc)) < 10*np.finfo(float).eps).all()
+    assert (np.abs(trq2[2]+trq[2] + np.sum(tc)) < 10*np.finfo(float).eps).all()
 
 
 def energy_3om(theta, z):
