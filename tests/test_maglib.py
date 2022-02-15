@@ -301,6 +301,21 @@ def test_ft_c():
     assert (np.abs(tpred[2] - torque) < 10*np.finfo(float).eps).all()
 
 
+def test_dmom_lm():
+    """
+    GIVEN x-dipole at [4, 1.4, 2.1]
+    WHEN all moments are computed
+    THEN match calculation of individual moments
+    """
+    mag1 = np.array([[1, 4, 1.4, 2.1, 1, 1, 0, 0]])
+    dmoms = mglb.dmoments(2, mag1)
+    for l in range(0, 3):
+        for m in range(-l, l+1):
+            dmom = mglb.dmoment(l, m, mag1)
+            assert (np.abs(dmoms[l, 2+m] - dmom) < 10*np.finfo(float).eps)
+
+
+
 def test_Dmombz():
     """
     Compares outer moment of z-dipole at the [0, 0, 10] + translate [0, 0, .5]
@@ -513,6 +528,7 @@ def test_force_x():
     AND using an explicit write of summing over all 9 pairs
     AND by converting to multipole moments and computing force and torques
     THEN expect all three match to roughly floating point precision
+    XXX: torque sign from NEWT
     """
     thetak = np.pi/6
     z = 3
@@ -549,6 +565,7 @@ def test_force_y():
     AND using an explicit write of summing over all 9 pairs
     AND by converting to multipole moments and computing force and torques
     THEN expect all three match to roughly floating point precision
+    XXX: torque sign from NEWT
     """
     thetak = np.pi/6
     z = 3
@@ -585,6 +602,7 @@ def test_force_z():
     AND using an explicit write of summing over all 9 pairs
     AND by converting to multipole moments and computing force and torques
     THEN expect all three match to roughly floating point precision
+    XXX: torque sign from NEWT
     """
     thetak = np.pi/6
     z = 3
@@ -611,6 +629,50 @@ def test_force_z():
     assert (np.abs(trq - trqb) < 10*np.finfo(float).eps).all()
     assert (np.abs(frc - frcc) < 1e2*np.finfo(float).eps).all()
     assert (np.abs(trq2[2]+trq[2] + np.sum(tc)) < 10*np.finfo(float).eps).all()
+
+
+def test_torque_vs_x():
+    """
+    GIVEN an x-dipole at [1, 0, 0] and a y-dipole at x=[1.5, 2, 2.5, 3, 3.5, 4]
+    WHEN the z-axis torque is calculated via multipole and point-point
+    THEN check the scaling of internal and external torque match
+    XXX: torque sign from NEWT
+    """
+    dxs = np.arange(1.5, 4.5, .5)
+    lmax = 40
+    mag0 = np.array([[1, 1, 0, 0, 1, 1, 0, 0]])
+    dmom = mglb.dmoments(lmax, mag0)
+    for dx in dxs:
+        mag1 = np.array([[1, dx, 0, 0, 1, 0, 1, 0]])
+        frc, trq2, trq = mglb.point_matrix_magnets(mag0, mag1)
+        trqz = trq2[2] + trq[2]
+        Dmomb = mglb.Dmomentsb(lmax, mag1)
+        tlm, tc, ts = mplb.torque_lm(lmax, dmom, Dmomb)
+        tc *= -mglb.magC/mplb.BIG_G
+        assert (np.abs(trqz + np.sum(tc)) < 1e7*np.finfo(float).eps).all()
+
+
+def test_torque_vs_x_ext():
+    """
+    GIVEN an x-dipole at x=[1, 1.5, 2, 2.5, 3] and a y-dipole at x’=x+.5
+    WHEN the z-axis torque is calculated via multipole and point-point
+    THEN check the scaling of changing external torque match
+    XXX: torque sign from NEWT
+
+    Large lmax required as point dipole at large radius and close separation
+    """
+    dxs = np.arange(1, 3.5, .5)
+    lmax = 60
+    for dx in dxs:
+        mag0 = np.array([[1, dx, 0, 0, 1, 1, 0, 0]])
+        dmom = mglb.dmoments(lmax, mag0)
+        mag1 = np.array([[1, dx+.5, 0, 0, 1, 0, 1, 0]])
+        frc, trq2, trq = mglb.point_matrix_magnets(mag0, mag1)
+        trqz = trq2[2] + trq[2]
+        Dmomb = mglb.Dmomentsb(lmax, mag1)
+        tlm, tc, ts = mplb.torque_lm(lmax, dmom, Dmomb)
+        tc *= -mglb.magC/mplb.BIG_G
+        assert (np.abs(trqz + np.sum(tc)) < 5e9*np.finfo(float).eps).all()
 
 
 def energy_3om(theta, z):
