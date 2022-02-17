@@ -267,14 +267,13 @@ def rotate_dipole_array(pointMagnet, theta, rotVec):
         rotArray = np.zeros([len(pointMagnet), 8])
         rotArray[:, 0] = pointMagnet[:, 0]
         rotArray[:, 4] = pointMagnet[:, 4]
-        for k in range(len(pointMagnet)):
-            rotArray[k, 1:4] = R.dot(pointMagnet[k, 1:4])
-            rotArray[k, 5:] = R.dot(pointMagnet[k, 5:])
+        rotArray[:, 1:4] = np.dot(R, pointMagnet[:, 1:4].T).T
+        rotArray[:, 5:8] = np.dot(R, pointMagnet[:, 5:8].T).T
 
     return rotArray
 
 
-def display_dipoles(pm1, pm2):
+def display_dipoles(pm1, pm2, length=1):
     """
     Create a 3-dimensional plot of the two point-mass arrays pm1 and pm2.
 
@@ -295,10 +294,11 @@ def display_dipoles(pm1, pm2):
     fig = plt.figure()
     ax = Axes3D(fig)
     ax.quiver(pm1[:, 1], pm1[:, 2], pm1[:, 3], pm1[:, 5], pm1[:, 6], pm1[:, 7],
-              label='magnet1', alpha=.5, normalize=True, arrow_length_ratio=.8)
+              label='magnet1', alpha=.5, normalize=True, arrow_length_ratio=.8,
+              length=length)
     ax.quiver(pm2[:, 1], pm2[:, 2], pm2[:, 3], pm2[:, 5], pm2[:, 6], pm2[:, 7],
               label='magnet2', alpha=.5, normalize=True, arrow_length_ratio=.8,
-              color='C1')
+              color='C1', length=length)
     ax.legend()
     return fig, ax
 
